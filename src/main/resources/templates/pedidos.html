@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Pedidos — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('pedidos')}"></header>
+
+<section class="banda">
+    <div class="wrap">
+        <h1>Pedidos</h1>
+        <p class="lead">El vendedor confirma stock y precio, el comprador acepta o contraoferta.
+            Cuando se cierra el trato, cada uno ve el WhatsApp del otro para coordinar la entrega.</p>
+    </div>
+</section>
+
+<main class="wrap contenido">
+    <h2 style="margin-top:0">Me pidieron</h2>
+    <div class="lista">
+        <div class="vacio" th:if="${recibidos.isEmpty()}">
+            Todavía no te pidieron nada. Mantené tu <a href="/mi-stock">stock</a> al día para aparecer en las búsquedas.
+        </div>
+        <th:block th:each="s : ${recibidos}">
+            <article th:replace="~{fragmentos/solicitud :: fila(s=${s}, rol='vendedor')}"></article>
+        </th:block>
+    </div>
+
+    <h2>Pedí</h2>
+    <div class="lista">
+        <div class="vacio" th:if="${enviados.isEmpty()}">
+            No hiciste pedidos. <a href="/">Buscá un repuesto</a> y tocá Pedir.
+        </div>
+        <th:block th:each="s : ${enviados}">
+            <article th:replace="~{fragmentos/solicitud :: fila(s=${s}, rol='comprador')}"></article>
+        </th:block>
+    </div>
+</main>
+
+<footer th:replace="~{fragmentos/nav :: pie}"></footer>
+</body>
+</html>

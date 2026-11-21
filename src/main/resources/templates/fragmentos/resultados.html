@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="resultados">
+    <p th:if="${q.length() < 3}" class="chico">Escribí al menos 3 letras o números.</p>
+
+    <div th:if="${q.length() >= 3 and resultados.isEmpty()}" class="lista">
+        <div class="vacio">
+            <p>Nadie tiene cargado <strong th:text="${q}"></strong> por ahora.</p>
+            <p th:unless="${logueado}"><a href="/login">Entrá</a> para dejar el pedido y te avisamos cuando alguien lo cargue.</p>
+            <form th:if="${logueado}" th:action="@{/demandas}" method="post" hx-post="/demandas" hx-swap="outerHTML">
+                <input type="hidden" name="texto" th:value="${q}">
+                <button type="submit">Avisarme cuando aparezca</button>
+            </form>
+        </div>
+    </div>
+
+    <th:block th:unless="${resultados.isEmpty()}">
+        <div class="resultados-cabecera">
+            <span th:text="${resultados.size() == 1 ? '1 resultado' : resultados.size() + ' resultados'}"></span>
+        </div>
+        <div class="lista">
+            <article class="resultado" th:each="item : ${resultados}">
+                <div>
+                    <span class="reemplazo"
+                          th:if="${item.codigoNormalizado != codigoBuscado and equivalentes.contains(item.codigoNormalizado)}"
+                          th:text="${'Reemplaza o equivale a ' + q}"></span>
+                    <h3 th:text="${item.descripcion ?: item.codigoOriginal}"></h3>
+                    <p class="meta">
+                        Código <span class="codigo" th:text="${item.codigoOriginal}"></span>
+                        <th:block th:if="${item.marcaRepuesto}">, marca <span th:text="${item.marcaRepuesto}"></span></th:block>
+                        <th:block th:if="${item.vehiculo}">, para <span th:text="${item.vehiculo}"></span></th:block>
+                    </p>
+                    <p class="vendedor">
+                        <strong th:text="${item.vendedor.nombre}"></strong>
+                        en <span th:text="${item.vendedor.ciudad}"></span>, <span th:text="${item.vendedor.estado}"></span>
+                    </p>
+                    <p class="meta" th:if="${item.vendedor.marcasResumen != ''}"
+                       th:text="${'Trabaja ' + item.vendedor.marcasResumen}"></p>
+                    <p class="aviso" th:if="${item.noConfirmado(diasNoConfirmado)}">
+                        El vendedor no actualizó su stock hace más de <span th:text="${diasNoConfirmado}"></span> días.
+                    </p>
+                </div>
+                <div class="precio-col">
+                    <div class="precio" th:if="${item.precioUsd != null}"><small>USD</small><span
+                            th:text="${#numbers.formatDecimal(item.precioUsd, 1, 'POINT', 2, 'COMMA')}"></span></div>
+                    <div class="precio precio-consultar" th:if="${item.precioUsd == null}">Precio a consultar</div>
+                    <div class="disponibles" th:text="${item.cantidad == null ? 'Disponibilidad a consultar'
+                            : (item.cantidad == 1 ? '1 disponible' : item.cantidad + ' disponibles')}"></div>
+
+                    <a th:unless="${logueado}" class="btn btn-secundario btn-chico" href="/login">Entrá para pedirlo</a>
+                    <span th:if="${logueado and item.vendedor.id == usuarioId}" class="chico">Es tuyo</span>
+                    <form th:if="${logueado and item.vendedor.id != usuarioId}" class="pedir"
+                          th:action="@{/solicitudes}" method="post" hx-post="/solicitudes" hx-swap="outerHTML">
+                        <input type="hidden" name="itemId" th:value="${item.id}">
+                        <input type="number" name="cantidad" value="1" min="1" th:max="${item.cantidad}"
+                               aria-label="Cantidad">
+                        <button type="submit">Pedir</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </th:block>
+</div>
+
+<p th:fragment="demandaCreada" class="msg msg-ok">
+    Listo. Te avisamos cuando alguien cargue <span th:text="${texto}"></span>.
+</p>
+
+</body>
+</html>

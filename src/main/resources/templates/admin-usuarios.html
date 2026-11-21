@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Usuarios — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('usuarios')}"></header>
+
+<section class="banda">
+    <div class="wrap">
+        <h1>Usuarios</h1>
+        <p class="lead">Dá de alta vendedores y compradores, asignales marcas y administrá el catálogo.</p>
+    </div>
+</section>
+
+<main class="wrap contenido">
+    <p class="msg msg-error" th:if="${error}" th:text="${error}"></p>
+    <p class="msg msg-ok" th:if="${ok}" th:text="${ok}"></p>
+
+    <details class="panel" open>
+        <summary>Nuevo usuario</summary>
+        <form th:action="@{/admin/usuarios}" method="post">
+            <div class="dos-columnas">
+                <div>
+                    <div class="campo">
+                        <label for="n-username">Usuario</label>
+                        <input class="ancho" id="n-username" name="username" placeholder="ej. jperez"
+                               th:value="${nuevo?.get('username')}"
+                               autocapitalize="none" spellcheck="false" required>
+                    </div>
+                    <div class="campo">
+                        <label for="n-nombre">Nombre o negocio</label>
+                        <input class="ancho" id="n-nombre" name="nombre" th:value="${nuevo?.get('nombre')}" required>
+                    </div>
+                    <div class="campo">
+                        <label for="n-password">Contraseña inicial</label>
+                        <input class="ancho" id="n-password" name="password" type="text" autocomplete="new-password"
+                               th:value="${nuevo?.get('password')}" required>
+                        <small>Mínimo 6 caracteres. El usuario la puede cambiar desde su configuración.</small>
+                    </div>
+                    <div class="campo">
+                        <label><input type="checkbox" name="admin" value="true" th:checked="${nuevo != null and nuevo.get('admin')}">Es administrador</label>
+                    </div>
+                </div>
+                <div>
+                    <label for="filtroMarcas">Marcas que vende</label>
+                    <input class="ancho" id="filtroMarcas" type="search" placeholder="Buscar marca" autocomplete="off">
+                    <p class="marcas-elegidas"><span id="cantMarcas">0</span> elegidas</p>
+                    <div style="max-height:300px; overflow:auto; border:1px solid var(--line); border-radius:8px; padding:4px 12px 10px">
+                        <div th:each="grupo : ${gruposMarcas}" th:unless="${#lists.isEmpty(grupo.value)}" class="grupo-marcas">
+                            <div class="grupo-titulo" th:text="${grupo.key.titulo}"></div>
+                            <div class="marcas-lista" style="columns:2 150px">
+                                <label th:each="m : ${grupo.value}" th:attr="data-nombre=${#strings.toLowerCase(m.nombre)}">
+                                    <input type="checkbox" name="marcasElegidas" th:value="${m.id}"
+                                           th:checked="${nuevo != null and nuevo.get('marcas').contains(m.id)}"><span th:text="${m.nombre}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="chico">Teléfono, ubicación y horarios los completa cada usuario la primera vez que entra.</p>
+            <button type="submit">Crear usuario</button>
+        </form>
+    </details>
+
+    <h2>Todos los usuarios</h2>
+    <div class="lista">
+        <div class="usuario" th:each="u : ${usuarios}" th:classappend="${u.activo} ? '' : 'inactivo'">
+            <h3 style="margin:0">
+                <span th:text="${u.nombre}"></span>
+                <span class="chico" style="font-weight:400" th:text="${'(' + u.username + ')'}"></span>
+                <span th:if="${u.admin}" class="etiqueta">Administrador</span>
+                <span th:unless="${u.activo}" class="etiqueta etiqueta-off">Desactivado</span>
+            </h3>
+            <p class="meta" style="margin-top:4px">
+                <th:block th:if="${u.perfilCompleto}"
+                          th:text="${u.ciudad + ', ' + u.estado + '. Tel. ' + u.telefono}"></th:block>
+                <th:block th:unless="${u.perfilCompleto}">Todavía no completó sus datos.</th:block>
+                <th:block th:if="${u.email}" th:text="${' ' + u.email}"></th:block>
+            </p>
+            <p class="meta" th:text="${u.marcasResumen != '' ? 'Trabaja ' + u.marcasResumen : 'Sin marcas asignadas'}"></p>
+            <p class="meta" th:if="${u.horarioResumen != ''}" th:text="${'Atiende ' + u.horarioResumen}"></p>
+            <div class="acciones">
+                <a class="btn btn-secundario btn-chico" th:href="@{/admin/usuarios/{id}/configuracion(id=${u.id})}">Editar datos y marcas</a>
+                <form th:action="@{/admin/usuarios/{id}/password(id=${u.id})}" method="post" style="display:flex; gap:6px">
+                    <input name="password" type="text" placeholder="Nueva contraseña" required style="width:170px"
+                           autocomplete="new-password" th:attr="aria-label=${'Nueva contraseña de ' + u.username}">
+                    <button type="submit" class="btn-secundario btn-chico">Cambiar contraseña</button>
+                </form>
+                <form th:action="@{/admin/usuarios/{id}/activo(id=${u.id})}" method="post">
+                    <button type="submit" class="btn-secundario btn-chico" th:text="${u.activo} ? 'Desactivar' : 'Activar'"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="marcas">Catálogo de marcas</h2>
+    <section class="panel">
+        <p class="chico">
+            <th:block th:each="grupo, it : ${gruposMarcas}"><span
+                    th:text="${grupo.key.titulo + ': ' + #lists.size(grupo.value)}"></span><th:block
+                    th:unless="${it.last}">. </th:block></th:block>.
+            Si falta alguna, agregala y queda disponible para todos.
+        </p>
+        <form th:action="@{/admin/marcas}" method="post" style="display:flex; gap:8px; flex-wrap:wrap">
+            <input name="nombre" placeholder="Nombre de la marca" required maxlength="60" aria-label="Nombre de la marca">
+            <select name="tipo" aria-label="Tipo">
+                <option th:each="t : ${tiposMarca}" th:value="${t}" th:text="${t.titulo}"></option>
+            </select>
+            <button type="submit">Agregar marca</button>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragmentos/nav :: pie}"></footer>
+
+<script>
+    document.getElementById('filtroMarcas').addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        document.querySelectorAll('.grupo-marcas').forEach(function (g) {
+            let visibles = 0;
+            g.querySelectorAll('label[data-nombre]').forEach(function (l) {
+                const ver = !q || l.dataset.nombre.includes(q);
+                l.style.display = ver ? '' : 'none';
+                if (ver) visibles++;
+            });
+            g.style.display = visibles ? '' : 'none';
+        });
+    });
+    function contarMarcas() {
+        document.getElementById('cantMarcas').textContent =
+            document.querySelectorAll('input[name=marcasElegidas]:checked').length;
+    }
+    document.querySelectorAll('input[name=marcasElegidas]').forEach(function (c) {
+        c.addEventListener('change', contarMarcas);
+    });
+    contarMarcas();
+</script>
+</body>
+</html>

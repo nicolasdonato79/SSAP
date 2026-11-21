@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Estado de una carga. Mientras no termina, se vuelve a pedir cada 2 segundos. -->
+<div th:fragment="estado" class="importacion"
+     th:with="enCurso=${!imp.estado.esFinal()}"
+     th:hx-get="${enCurso} ? @{/importaciones/{id}(id=${imp.id})} : null"
+     th:hx-trigger="${enCurso} ? 'every 2s' : null"
+     th:hx-swap="${enCurso} ? 'outerHTML' : null">
+
+    <p th:if="${enCurso}" class="msg msg-aviso">
+        Leyendo <span th:text="${imp.nombreArchivo}"></span>…
+    </p>
+
+    <th:block th:if="${imp.estado.name() == 'TERMINADA'}">
+        <p class="msg" th:classappend="${imp.filasError == 0} ? 'msg-ok' : 'msg-aviso'">
+            <span th:text="${imp.nombreArchivo}"></span>:
+            <span th:text="${imp.filasOk}"></span> productos publicados<th:block th:if="${imp.filasError > 0}">,
+            <span th:text="${imp.filasError}"></span> filas con errores para revisar</th:block>.
+        </p>
+        <pre th:if="${imp.errores != null and !imp.errores.isEmpty()}" th:text="${imp.errores}"></pre>
+    </th:block>
+
+    <p th:if="${imp.estado.name() == 'FALLIDA'}" class="msg msg-error" th:text="${imp.errores}"></p>
+</div>
+
+<p th:fragment="error" class="msg msg-error" th:text="${error}"></p>
+
+</body>
+</html>

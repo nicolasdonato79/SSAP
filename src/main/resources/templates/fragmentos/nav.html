@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Todo lo común del <head>. Uso: <th:block th:replace="~{fragmentos/nav :: head}"></th:block> -->
+    <th:block th:fragment="head">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0B1F3A">
+        <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Manrope:wght@600..800&family=Source+Sans+3:wght@400..700&display=swap">
+        <link rel="stylesheet" href="/css/app.css">
+        <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    </th:block>
+</head>
+<body>
+
+<!-- Logo: tuerca hexagonal con centro naranja. -->
+<svg th:fragment="logo" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="27" height="27" rx="7" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="M24 15l-4.5 7.8h-9L6 15l4.5-7.8h9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="15" cy="15" r="3.4" fill="none" stroke="#F28A30" stroke-width="2.4"/>
+</svg>
+
+<!-- Encabezado. activo = 'buscar' | 'stock' | 'pedidos' | 'usuarios' | 'config' | '' -->
+<header th:fragment="nav(activo)" class="top">
+    <div class="wrap">
+        <a class="logo" href="/" aria-label="Stock Multimarca, inicio">
+            <svg th:replace="~{fragmentos/nav :: logo}"></svg>
+            STOCK <span>multimarca</span>
+        </a>
+        <ul class="menu">
+            <li><a href="/" th:attr="aria-current=${activo == 'buscar'} ? 'page' : null">Buscar</a></li>
+            <li><a href="/mi-stock" th:attr="aria-current=${activo == 'stock'} ? 'page' : null">Mi stock</a></li>
+            <li><a href="/pedidos" th:attr="aria-current=${activo == 'pedidos'} ? 'page' : null">Pedidos<span
+                    th:if="${pedidosPendientes > 0}" class="badge" th:text="${pedidosPendientes}"
+                    th:title="${pedidosPendientes + ' pedidos esperando tu respuesta'}"></span></a></li>
+            <li th:if="${esAdmin}"><a href="/admin/usuarios"
+                    th:attr="aria-current=${activo == 'usuarios'} ? 'page' : null">Usuarios</a></li>
+        </ul>
+        <div class="top-acciones">
+            <a th:unless="${logueado}" class="btn btn-primario btn-chico" href="/login">Entrar</a>
+            <a th:if="${logueado}" class="engranaje" href="/configuracion" title="Configuración" aria-label="Configuración"
+               th:attr="aria-current=${activo == 'config'} ? 'page' : null">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </a>
+            <form th:if="${logueado}" th:action="@{/logout}" method="post">
+                <button type="submit">Salir</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<footer th:fragment="pie" class="pie">
+    <div class="wrap">
+        <span>Stock Multimarca — repuestos entre vendedores de toda Venezuela</span>
+        <span>Hecho por <a href="https://gochosoftware.com" target="_blank" rel="noopener">Gocho Software</a></span>
+    </div>
+</footer>
+
+</body>
+</html>

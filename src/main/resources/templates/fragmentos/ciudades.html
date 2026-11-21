@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Opciones para la configuración. Variables: ciudades, seleccionada, estadoElegido -->
+<select>
+    <th:block th:fragment="form">
+        <option value="" th:text="${estadoElegido} ? 'Elegí la ciudad o pueblo' : 'Primero elegí el estado'"></option>
+        <option th:each="c : ${ciudades}" th:value="${c}" th:text="${c}" th:selected="${c == seleccionada}"></option>
+        <option th:if="${estadoElegido}" value="__otra__" th:selected="${seleccionada == '__otra__'}">Otra (escribirla)</option>
+    </th:block>
+</select>
+
+<!-- Opciones para el filtro de la búsqueda -->
+<select>
+    <th:block th:fragment="filtro">
+        <option value="">Todas las ciudades</option>
+        <option th:each="c : ${ciudades}" th:value="${c}" th:text="${c}"></option>
+    </th:block>
+</select>
+
+</body>
+</html>

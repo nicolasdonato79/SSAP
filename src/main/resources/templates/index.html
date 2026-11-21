@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Stock Multimarca — Buscar repuestos</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('buscar')}"></header>
+
+<section class="banda banda-busqueda">
+    <div class="wrap">
+        <h1>Encontrá el repuesto en el stock de vendedores de toda Venezuela</h1>
+        <form class="buscador" action="/" role="search"
+              hx-get="/buscar" hx-target="#resultados"
+              hx-trigger="input changed delay:400ms from:#q, change from:#estado, change from:#ciudadFiltro, change from:#marca, submit">
+            <div class="buscador-fila">
+                <label for="q" class="sr">Código o descripción</label>
+                <input id="q" type="search" name="q" autocomplete="off" autofocus
+                       placeholder="Código o descripción. Ej: FB3Z-9A543-J o amortiguador corolla">
+                <button type="submit" class="btn-buscar">Buscar</button>
+            </div>
+            <div class="filtros">
+                <select id="estado" name="estado" aria-label="Estado"
+                        hx-get="/ciudades?modo=filtro" hx-target="#ciudadFiltro" hx-swap="innerHTML" hx-trigger="change">
+                    <option value="">Todo el país</option>
+                    <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"></option>
+                </select>
+                <select id="ciudadFiltro" name="ciudad" aria-label="Ciudad">
+                    <option value="">Todas las ciudades</option>
+                </select>
+                <select id="marca" name="marca" aria-label="Marca que trabaja el vendedor">
+                    <option value="">Vendedores de todas las marcas</option>
+                    <optgroup th:each="grupo : ${gruposMarcas}" th:unless="${#lists.isEmpty(grupo.value)}"
+                              th:label="${grupo.key.titulo}">
+                        <option th:each="m : ${grupo.value}" th:value="${m.id}" th:text="${m.nombre}"></option>
+                    </optgroup>
+                </select>
+            </div>
+            <p class="ayuda-busqueda">Si buscás por código, también te mostramos los números que lo reemplazan.</p>
+        </form>
+    </div>
+</section>
+
+<main class="wrap contenido">
+    <div id="resultados"></div>
+</main>
+
+<footer th:replace="~{fragmentos/nav :: pie}"></footer>
+
+<!-- Aviso al entrar: solo después del login y si faltan datos del perfil -->
+<dialog th:if="${avisoPerfil}" id="avisoPerfil" class="aviso-modal" aria-labelledby="avisoPerfilTitulo">
+    <h2 id="avisoPerfilTitulo">Completá tus datos</h2>
+    <p>Te falta cargar
+        <th:block th:each="d, it : ${datosFaltantes}"><strong th:text="${d}"></strong><th:block
+                th:if="${!it.last}" th:text="${it.index == it.size - 2} ? ' y ' : ', '"></th:block></th:block>.
+    </p>
+    <p class="chico">Mientras tanto podés buscar repuestos, pero no cargar tu stock ni hacer pedidos:
+        los compradores y vendedores necesitan saber dónde estás y cómo escribirte.</p>
+    <div class="aviso-modal-botones">
+        <a class="btn btn-primario" href="/configuracion">Completar ahora</a>
+        <button type="button" class="btn-secundario" id="avisoPerfilCerrar">Más tarde</button>
+    </div>
+</dialog>
+<script th:if="${avisoPerfil}">
+    (function () {
+        const d = document.getElementById('avisoPerfil');
+        if (typeof d.showModal === 'function') { d.showModal(); } else { d.setAttribute('open', ''); }
+        document.getElementById('avisoPerfilCerrar').addEventListener('click', function () { d.close(); });
+    })();
+</script>
+</body>
+</html>

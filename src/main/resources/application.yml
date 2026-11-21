@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: sistema-stock-autopartes
+  datasource:
+    # Valores por defecto = docker-compose.yml. Se pueden pisar con variables de entorno.
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/stockautopartes}
+    username: ${DB_USER:stock}
+    password: ${DB_PASSWORD:stock}
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: none   # el esquema lo maneja Flyway
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+app:
+  importacion:
+    carpeta-temporal: ${java.io.tmpdir}/stockautopartes-uploads
+    max-errores-guardados: 200
+  stock:
+    dias-para-no-confirmado: 15
+  otp:
+    vigencia-minutos: 5
+    max-intentos: 5
+    max-codigos-por-ventana: 3
+    ventana-minutos: 10
+    # Solo en modo prueba (WhatsApp sin configurar): muestra el código en la pantalla de login.
+    mostrar-en-pantalla: ${OTP_EN_PANTALLA:true}
+  whatsapp:
+    # false = modo prueba (el código sale en consola/pantalla). true = se manda por WhatsApp Cloud API.
+    habilitado: ${WHATSAPP_HABILITADO:false}
+    token: ${WHATSAPP_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    plantilla: ${WHATSAPP_PLANTILLA:codigo_acceso}
+    idioma: ${WHATSAPP_IDIOMA:es}
+    version-api: ${WHATSAPP_VERSION_API:v27.0}
+
+server:
+  servlet:
+    session:
+      timeout: 30d   # que no tengan que pedir código todo el tiempo
+      cookie:
+        http-only: true
+        same-site: lax

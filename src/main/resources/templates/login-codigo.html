@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Código de acceso</title>
+</head>
+<body>
+<nav th:replace="~{fragmentos/nav :: nav('')}"></nav>
+<h1>Poné el código</h1>
+<p>Lo mandamos por WhatsApp a <strong th:text="${telefono}"></strong>. Vence en 5 minutos.</p>
+<p th:if="${codigoDePrueba}" style="background:#fff3cd; padding:10px; border-radius:6px">
+    <strong>Modo prueba</strong> (WhatsApp sin configurar): tu código es
+    <strong th:text="${codigoDePrueba}" style="font-size:20px; letter-spacing:2px"></strong>
+</p>
+
+<form th:action="@{/login/verificar}" method="post">
+    <input type="hidden" name="telefono" th:value="${telefono}">
+    <input class="ancho" name="codigo" inputmode="numeric" autocomplete="one-time-code"
+           pattern="\d{6}" maxlength="6" placeholder="123456" required autofocus>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <p><button type="submit">Entrar</button></p>
+</form>
+
+<form th:action="@{/login/codigo}" method="post">
+    <input type="hidden" name="telefono" th:value="${telefono}">
+    <button type="submit">Mandar otro código</button>
+</form>
+<p><a href="/login">Cambiar número</a></p>
+</body>
+</html>

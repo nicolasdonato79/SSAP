@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Cargar stock</title>
+</head>
+<body>
+<nav th:replace="~{fragmentos/nav :: nav('')}"></nav>
+<h1>Cargar mi stock</h1>
+
+<p>Subí un <strong>.xlsx</strong> con estas columnas en la fila 1:
+    <code>codigo</code> <code>descripcion</code> <code>marca</code> <code>vehiculo</code>
+    <code>cantidad</code> <code>precio_usd</code> (opcional).</p>
+<p><strong>Cada carga reemplaza todo tu stock anterior.</strong></p>
+
+<form th:action="@{/importar}" method="post" enctype="multipart/form-data"
+      hx-post="/importar" hx-encoding="multipart/form-data" hx-target="#estado">
+    <input type="file" name="archivo" accept=".xlsx" required>
+    <button type="submit">Subir</button>
+</form>
+
+<div id="estado"></div>
+</body>
+</html>

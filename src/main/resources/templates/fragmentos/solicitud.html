@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<p th:fragment="mensaje" class="msg" th:classappend="${ok} ? 'msg-ok' : 'msg-aviso'" th:text="${mensaje}"></p>
+
+<!--
+  Un pedido. rol = 'vendedor' (me lo pidieron) o 'comprador' (lo pedí).
+  Negociación: PENDIENTE → (vendedor) OFERTADA | RECHAZADA → (comprador) ACEPTADA | CONTRAOFERTA | CANCELADA
+               CONTRAOFERTA → (vendedor) ACEPTADA | RECHAZADA
+-->
+<article th:fragment="fila" class="pedido"
+         th:with="esVendedor=${rol == 'vendedor'},
+                  miTurno=${(esVendedor and (s.pendiente or s.contraoferta)) or (!esVendedor and s.ofertada)},
+                  url=@{/solicitudes/{id}(id=${s.id})}">
+    <div>
+        <!-- Estado -->
+        <span class="estado" th:classappend="${miTurno} ? 'estado-turno' : (${s.aceptada} ? 'estado-ACEPTADA' : '')"
+              th:switch="${s.estado.name()}">
+            <th:block th:case="'PENDIENTE'" th:text="${esVendedor} ? 'Te toca responder' : 'Esperando al vendedor'"></th:block>
+            <th:block th:case="'OFERTADA'" th:text="${esVendedor} ? 'Esperando al comprador' : 'Te toca responder'"></th:block>
+            <th:block th:case="'CONTRAOFERTA'" th:text="${esVendedor} ? 'Te toca responder' : 'Esperando al vendedor'"></th:block>
+            <th:block th:case="'ACEPTADA'">Trato cerrado</th:block>
+            <th:block th:case="'RECHAZADA'" th:text="${s.sinStock} ? 'Sin stock' : 'Contraoferta rechazada'"></th:block>
+            <th:block th:case="'CANCELADA'">Cancelado</th:block>
+        </span>
+
+        <h3 style="margin-top:8px" th:text="${s.descripcion ?: s.codigo}"></h3>
+        <p class="meta">Código <span class="codigo" th:text="${s.codigo}"></span>,
+            <span class="num" th:text="${s.cantidad}"></span> u.</p>
+
+        <p class="vendedor" th:if="${esVendedor}">
+            Lo pide <strong th:text="${s.comprador.nombre}"></strong>
+            de <span th:text="${s.comprador.ciudad}"></span>, <span th:text="${s.comprador.estado}"></span>
+        </p>
+        <p class="vendedor" th:unless="${esVendedor}">
+            Se lo pediste a <strong th:text="${s.vendedor.nombre}"></strong>
+            de <span th:text="${s.vendedor.ciudad}"></span>, <span th:text="${s.vendedor.estado}"></span>
+        </p>
+
+        <!-- Historia del precio -->
+        <ul class="negociacion">
+            <li>Precio publicado:
+                <strong th:if="${s.precioUsd != null}"
+                        th:text="${'USD ' + #numbers.formatDecimal(s.precioUsd, 1, 'POINT', 2, 'COMMA')}"></strong>
+                <strong th:if="${s.precioUsd == null}">a consultar</strong></li>
+            <li th:if="${s.precioOferta != null}">
+                <th:block th:text="${esVendedor} ? 'Tu precio:' : 'Precio del vendedor:'"></th:block>
+                <strong th:text="${'USD ' + #numbers.formatDecimal(s.precioOferta, 1, 'POINT', 2, 'COMMA')}"></strong></li>
+            <li th:if="${s.precioContraoferta != null}">
+                <th:block th:text="${esVendedor} ? 'Contraoferta del comprador:' : 'Tu contraoferta:'"></th:block>
+                <strong th:text="${'USD ' + #numbers.formatDecimal(s.precioContraoferta, 1, 'POINT', 2, 'COMMA')}"></strong></li>
+        </ul>
+        <p class="chico" th:text="${'Pedido el ' + @fechas.formatear(s.creadaEn)}"></p>
+
+        <p class="msg msg-error" th:if="${error}" th:text="${error}"></p>
+
+        <!-- Vendedor: confirmar stock y pasar precio -->
+        <div th:if="${esVendedor and s.pendiente}" class="acciones">
+            <form th:action="${url + '/ofertar'}" method="post" class="form-precio"
+                  th:hx-post="${url + '/ofertar'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <label th:for="${'precio-' + s.id}">Precio unitario USD</label>
+                <input th:id="${'precio-' + s.id}" name="precio" inputmode="decimal" required autocomplete="off"
+                       th:value="${s.precioUsd != null} ? ${#numbers.formatDecimal(s.precioUsd, 1, 'POINT', 2, 'COMMA')} : ''"
+                       placeholder="0,00">
+                <button type="submit">Tengo stock, enviar precio</button>
+            </form>
+            <form th:action="${url + '/sin-stock'}" method="post"
+                  th:hx-post="${url + '/sin-stock'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <button type="submit" class="btn-secundario">No lo tengo</button>
+            </form>
+        </div>
+
+        <!-- Comprador: aceptar el precio o contraofertar -->
+        <div th:if="${!esVendedor and s.ofertada}" class="acciones">
+            <form th:action="${url + '/aceptar-oferta'}" method="post"
+                  th:hx-post="${url + '/aceptar-oferta'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <button type="submit"
+                        th:text="${'Acepto USD ' + #numbers.formatDecimal(s.precioOferta, 1, 'POINT', 2, 'COMMA') + ' c/u'}"></button>
+            </form>
+            <form th:action="${url + '/contraofertar'}" method="post" class="form-precio"
+                  th:hx-post="${url + '/contraofertar'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <label th:for="${'contra-' + s.id}" class="sr">Tu precio unitario USD</label>
+                <input th:id="${'contra-' + s.id}" name="precio" inputmode="decimal" required autocomplete="off"
+                       placeholder="Tu precio USD">
+                <button type="submit" class="btn-secundario">Hacer contraoferta</button>
+            </form>
+        </div>
+
+        <!-- Vendedor: responder la contraoferta -->
+        <div th:if="${esVendedor and s.contraoferta}" class="acciones">
+            <form th:action="${url + '/aceptar-contraoferta'}" method="post"
+                  th:hx-post="${url + '/aceptar-contraoferta'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <button type="submit"
+                        th:text="${'Acepto USD ' + #numbers.formatDecimal(s.precioContraoferta, 1, 'POINT', 2, 'COMMA') + ' c/u'}"></button>
+            </form>
+            <form th:action="${url + '/rechazar-contraoferta'}" method="post"
+                  th:hx-post="${url + '/rechazar-contraoferta'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <button type="submit" class="btn-secundario">Rechazar contraoferta</button>
+            </form>
+        </div>
+
+        <!-- Comprador: cancelar mientras siga abierto -->
+        <div th:if="${!esVendedor and s.abierta}" class="acciones">
+            <form th:action="${url + '/cancelar'}" method="post"
+                  th:hx-post="${url + '/cancelar'}" hx-target="closest .pedido" hx-swap="outerHTML">
+                <button type="submit" class="btn-enlace">Cancelar pedido</button>
+            </form>
+        </div>
+
+        <!-- Trato cerrado: recién ahí se ven los contactos -->
+        <div class="acciones" th:if="${s.aceptada and !esVendedor}">
+            <a class="btn btn-wa" th:href="${s.vendedor.linkWhatsapp}" target="_blank" rel="noopener">Escribirle por WhatsApp</a>
+            <span class="chico" th:if="${s.vendedor.horarioResumen != ''}"
+                  th:text="${'Atiende ' + s.vendedor.horarioResumen}"></span>
+        </div>
+        <div class="acciones" th:if="${s.aceptada and esVendedor}">
+            <a class="btn btn-wa" th:href="${s.comprador.linkWhatsapp}" target="_blank" rel="noopener">Escribirle por WhatsApp</a>
+        </div>
+    </div>
+
+    <div class="precio-col">
+        <th:block th:if="${s.totalUsd != null}">
+            <div class="precio"><small>USD</small><span
+                    th:text="${#numbers.formatDecimal(s.totalUsd, 1, 'POINT', 2, 'COMMA')}"></span></div>
+            <div class="disponibles" th:text="${s.aceptada} ? 'total acordado' : 'total'"></div>
+        </th:block>
+        <div class="precio precio-consultar" th:if="${s.totalUsd == null}">Precio a consultar</div>
+    </div>
+</article>
+
+</body>
+</html>

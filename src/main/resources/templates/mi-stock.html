@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Mi stock — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('stock')}"></header>
+
+<section class="banda">
+    <div class="wrap">
+        <h1>Mi stock</h1>
+        <p class="lead">Subí tu listado en Excel y queda visible para compradores de todo el país.</p>
+        <div class="cifras">
+            <div><b th:text="${total}">0</b>productos publicados</div>
+            <div th:if="${usuario.ultimaCarga}"><b th:text="${@fechas.formatear(usuario.ultimaCarga)}"></b>última carga</div>
+            <div th:if="${usuario.marcasResumen != ''}"><b th:text="${usuario.marcas.size()}"></b>
+                <a href="/configuracion" th:text="${usuario.marcas.size() == 1 ? 'marca' : 'marcas'}"></a></div>
+        </div>
+    </div>
+</section>
+
+<main class="wrap contenido">
+    <section class="panel">
+        <h2>Subir listado</h2>
+        <p>Un Excel (.xlsx o .xls) con columnas de <strong>código y cantidad</strong>; en la cantidad también
+            vale "consultar". Opcionales: precio en USD (vacío = a consultar), descripción, marca, vehículo,
+            códigos que reemplaza y equivalentes.
+            Los títulos pueden llamarse como ya los usás ("Ref", "Cant.", "Existencia", "Precio $"…).
+            <a href="/plantilla.xlsx">Bajar planilla de ejemplo</a></p>
+        <p class="msg msg-aviso">Cada carga reemplaza todo tu stock anterior.</p>
+
+        <form class="subida" th:action="@{/importar}" method="post" enctype="multipart/form-data"
+              hx-post="/importar" hx-encoding="multipart/form-data" hx-target="#estado">
+            <input type="file" name="archivo" accept=".xlsx,.xls" required aria-label="Archivo de Excel">
+            <button type="submit">Subir listado</button>
+        </form>
+
+        <div id="estado">
+            <th:block th:if="${ultima}">
+                <div th:replace="~{fragmentos/importacion :: estado(imp=${ultima})}"></div>
+            </th:block>
+        </div>
+    </section>
+
+    <section class="panel" th:if="${total > 0}">
+        <h2>Publicado</h2>
+        <p class="chico" th:if="${total > items.size()}">
+            Mostrando los primeros <span th:text="${items.size()}"></span> de <span th:text="${total}"></span>.
+        </p>
+        <div class="tabla-wrap">
+            <table class="tabla">
+                <thead>
+                <tr><th>Código</th><th>Descripción</th><th class="der">Cantidad</th><th class="der">USD</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="i : ${items}">
+                    <td class="codigo" th:text="${i.codigoOriginal}"></td>
+                    <td th:text="${i.descripcion ?: '—'}"></td>
+                    <td class="der" th:text="${i.cantidad ?: 'Consultar'}"></td>
+                    <td class="der" th:text="${i.precioUsd != null ? #numbers.formatDecimal(i.precioUsd, 1, 'POINT', 2, 'COMMA') : 'Consultar'}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragmentos/nav :: pie}"></footer>
+</body>
+</html>
