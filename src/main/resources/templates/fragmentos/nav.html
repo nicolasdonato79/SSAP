@@ -41,6 +41,7 @@
                     th:attr="aria-current=${activo == 'usuarios'} ? 'page' : null">Usuarios</a></li>
         </ul>
         <div class="top-acciones">
+            <a th:if="${!logueado and registroAbierto}" class="btn btn-secundario btn-chico" href="/registro">Crear cuenta</a>
             <a th:unless="${logueado}" class="btn btn-primario btn-chico" href="/login">Entrar</a>
             <a th:if="${logueado}" class="engranaje" href="/configuracion" title="Configuración" aria-label="Configuración"
                th:attr="aria-current=${activo == 'config'} ? 'page' : null">

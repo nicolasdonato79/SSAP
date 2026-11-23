@@ -30,8 +30,8 @@ public class RegistroController {
         this.marcas = marcas;
     }
 
-    @GetMapping({"/registro", "/perfil"})
-    public String rutasViejas() {
+    @GetMapping("/perfil")
+    public String rutaVieja() {
         return "redirect:/configuracion";
     }
 
@@ -44,12 +44,16 @@ public class RegistroController {
     @PostMapping("/configuracion")
     public String guardar(@ModelAttribute PerfilForm form, Model model, RedirectAttributes flash) {
         Usuario yo = usuarioActual.buscar().orElseThrow();
+        boolean eraPrimeraVez = !yo.isPerfilCompleto();
         List<String> errores = perfil.guardar(yo.getId(), form, true);
         if (!errores.isEmpty()) {
             return vista(model, yo, form, errores);
         }
+        if (eraPrimeraVez) {
+            return "redirect:/";
+        }
         flash.addFlashAttribute("ok", "Cambios guardados.");
-        return "redirect:/";
+        return "redirect:/configuracion";
     }
 
     @PostMapping("/configuracion/password")
@@ -68,6 +72,8 @@ public class RegistroController {
         model.addAttribute("ciudades", perfil.ciudadesDe(form.getEstado()));
         model.addAttribute("seleccionada", form.getCiudad());
         model.addAttribute("estadoElegido", !form.getEstado().isBlank());
+        model.addAttribute("telefonoVerificado", yo.isTelefonoVerificado());
+        model.addAttribute("emailVerificado", yo.isEmailVerificado());
         model.addAttribute("errores", errores);
         model.addAttribute("gruposMarcas", marcas.agrupadas());
         model.addAttribute("accion", "/configuracion");

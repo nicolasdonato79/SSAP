@@ -9,19 +9,19 @@
 
 <main class="login-banda">
     <div class="login-caja">
-        <div class="marca-login logo">
-            <svg th:replace="~{fragmentos/nav :: logo}"></svg>
-            STOCK <span>multimarca</span>
-        </div>
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
         <h1>Entrar</h1>
-        <p class="chico">Con el usuario y la contraseña que te dio el administrador.</p>
-
         <p class="msg msg-error" th:if="${param.error}">El usuario o la contraseña no coinciden.</p>
+        <p class="msg msg-aviso" th:if="${param.pendiente}">Tu cuenta todavía no está activada: falta verificar el
+            teléfono o abrir el link que te mandamos por email. Si no te llegó, <a href="/registro">volvé a registrarte</a>
+            con los mismos datos.</p>
+        <p class="msg msg-error" th:if="${param.desactivado}">Tu cuenta está desactivada. Hablá con el administrador.</p>
         <p class="msg msg-ok" th:if="${param.logout}">Cerraste la sesión.</p>
+        <p class="msg msg-ok" th:if="${param.clave}">Listo, ya podés entrar con tu contraseña nueva.</p>
 
         <form th:action="@{/login}" method="post">
             <div class="campo">
-                <label for="username">Usuario</label>
+                <label for="username">Usuario o email</label>
                 <input class="ancho" id="username" name="username" autocomplete="username"
                        autocapitalize="none" spellcheck="false" required autofocus>
             </div>
@@ -32,7 +32,9 @@
             </div>
             <button type="submit">Entrar</button>
         </form>
-        <p class="chico" style="margin:16px 0 0">¿No tenés usuario? Pedíselo al administrador.</p>
+        <p style="margin:12px 0 0"><a href="/recuperar">¿Olvidaste tu contraseña?</a></p>
+        <p class="pie-caja" th:if="${registroAbierto}">¿No tenés cuenta? <a href="/registro">Creá una</a></p>
+        <p class="pie-caja chico" th:unless="${registroAbierto}">¿No tenés usuario? Pedíselo al administrador.</p>
     </div>
 </main>
 </body>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Contraseña nueva — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <h1>Elegí una contraseña nueva</h1>
+        <p class="msg msg-error" th:if="${error}" th:text="${error}"></p>
+
+        <form th:action="@{/recuperar/nueva}" method="post">
+            <input type="hidden" name="token" th:value="${token}">
+            <div class="campo">
+                <label for="nueva">Contraseña nueva</label>
+                <input class="ancho" id="nueva" name="nueva" type="password" required autofocus
+                       th:minlength="${minPassword}" autocomplete="new-password">
+                <small th:text="${'Mínimo ' + minPassword + ' caracteres.'}"></small>
+            </div>
+            <div class="campo">
+                <label for="repetida">Repetila</label>
+                <input class="ancho" id="repetida" name="repetida" type="password" required autocomplete="new-password">
+            </div>
+            <button type="submit">Guardar contraseña</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Verificá tu teléfono — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <ol th:replace="~{fragmentos/alta :: pasos(2, true)}"></ol>
+        <h1>Verificá tu teléfono</h1>
+        <p>Te mandamos un código por SMS al <strong th:text="${telefono}"></strong>. Vence en 5 minutos.</p>
+
+        <p class="prueba" th:if="${codigoPrueba}">
+            Modo prueba (SMS sin configurar). Tu código es <strong th:text="${codigoPrueba}"></strong>
+        </p>
+        <p class="msg msg-ok" th:if="${ok}" th:text="${ok}"></p>
+        <p class="msg msg-error" th:if="${error}" th:text="${error}"></p>
+
+        <form th:action="@{/registro/telefono}" method="post">
+            <div class="campo">
+                <label for="codigo">Código de 6 números</label>
+                <input class="codigo-input" id="codigo" name="codigo" inputmode="numeric" pattern="[0-9]{6}"
+                       maxlength="6" autocomplete="one-time-code" required autofocus>
+            </div>
+            <button type="submit">Verificar</button>
+        </form>
+
+        <div class="pie-caja">
+            <form th:action="@{/registro/telefono/reenviar}" method="post" style="display:inline">
+                <button type="submit" class="btn-enlace">Mandarme otro código</button>
+            </form>
+            <span class="chico">o <a href="/registro">corregir el número</a></span>
+        </div>
+    </div>
+</main>
+</body>
+</html>

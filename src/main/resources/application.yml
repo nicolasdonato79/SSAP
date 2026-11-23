@@ -19,27 +19,58 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+  mail:
+    # SMTP para los emails de activación y recuperación (solo si app.email.habilitado=true).
+    # Ej. Gmail: host smtp.gmail.com, puerto 587, usuario la cuenta y password una "contraseña de aplicación".
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
 
 app:
+  # Dirección pública de la app, para los links que van por email.
+  url-publica: ${APP_URL:http://localhost:${server.port:8080}}
+  registro:
+    # Alta automática de usuarios en /registro (issue #1).
+    habilitado: ${REGISTRO_HABILITADO:true}
+    # true = además del email, pide verificar el teléfono con un código por SMS (app.otp.*).
+    # false = alta en 2 pasos: datos y link por email (el teléfono queda sin verificar).
+    verificar-telefono: ${VERIFICAR_TELEFONO:false}
+  email:
+    # false = modo prueba (el email sale en consola/pantalla). true = se manda por SMTP (spring.mail.*).
+    habilitado: ${EMAIL_HABILITADO:false}
+    remitente: ${MAIL_FROM:Stock Multimarca <noresponder@gochosoftware.com>}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    remitente: ${TWILIO_FROM:}
   importacion:
     carpeta-temporal: ${java.io.tmpdir}/stockautopartes-uploads
     max-errores-guardados: 200
   stock:
     dias-para-no-confirmado: 15
   otp:
+    # Cómo se manda el código de verificación del teléfono:
+    #   prueba   = no se manda (sale en consola y, si mostrar-en-pantalla, en la pantalla)
+    #   sms      = SMS con Twilio (app.twilio.*)
+    #   whatsapp = WhatsApp Cloud API (app.whatsapp.*)
+    canal: ${OTP_CANAL:prueba}
     vigencia-minutos: 5
     max-intentos: 5
     max-codigos-por-ventana: 3
     ventana-minutos: 10
-    # Solo en modo prueba (WhatsApp sin configurar): muestra el código en la pantalla de login.
+    # Solo en modo prueba (SMS/email sin configurar): muestra el código y el link en la pantalla.
     mostrar-en-pantalla: ${OTP_EN_PANTALLA:true}
   whatsapp:
-    # false = modo prueba (el código sale en consola/pantalla). true = se manda por WhatsApp Cloud API.
-    habilitado: ${WHATSAPP_HABILITADO:false}
     token: ${WHATSAPP_TOKEN:}
     phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
     plantilla: ${WHATSAPP_PLANTILLA:codigo_acceso}

@@ -66,7 +66,6 @@ public class PerfilService {
         String nombre = f.getNombre().trim();
         boolean ciudadOtra = CiudadController.OTRA.equals(f.getCiudad());
         String ciudad = (ciudadOtra ? f.getCiudadOtra() : f.getCiudad()).trim();
-        String email = f.getEmail().trim();
         String estado = f.getEstado().isBlank() ? null : f.getEstado();
         boolean sinTelefono = f.getTelefono().isBlank();
         if (nombre.length() < 2 || nombre.length() > 150) errores.add("Poné un nombre.");
@@ -83,6 +82,11 @@ public class PerfilService {
             }
         }
 
+        // El propio usuario no puede cambiar un teléfono o email ya verificado (el admin sí; al cambiar, deja de estar verificado)
+        if (exigirContacto && u.isTelefonoVerificado()) f.setTelefono(u.getTelefono());
+        if (exigirContacto && u.isEmailVerificado()) f.setEmail(u.getEmail());
+
+        String email = f.getEmail().trim();
         Optional<String> telefono = TelefonoNormalizer.normalizar(f.getTelefono());
         if (sinTelefono && !exigirContacto) {
             // el admin puede dejarlo vacío

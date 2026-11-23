@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Crear cuenta — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <h1>Todavía no abrimos el registro</h1>
+        <p>Por ahora las cuentas las da de alta el administrador. Pedile un usuario y te lo crea.</p>
+        <a class="btn btn-primario" style="width:100%" href="/login">Entrar</a>
+    </div>
+</main>
+</body>
+</html>

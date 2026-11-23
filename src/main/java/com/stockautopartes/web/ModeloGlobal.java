@@ -18,9 +18,13 @@ public class ModeloGlobal {
     private final UsuarioActual usuarioActual;
     private final SolicitudRepository solicitudes;
 
-    public ModeloGlobal(UsuarioActual usuarioActual, SolicitudRepository solicitudes) {
+    private final boolean registroAbierto;
+
+    public ModeloGlobal(UsuarioActual usuarioActual, SolicitudRepository solicitudes,
+                        @org.springframework.beans.factory.annotation.Value("${app.registro.habilitado}") boolean registroAbierto) {
         this.usuarioActual = usuarioActual;
         this.solicitudes = solicitudes;
+        this.registroAbierto = registroAbierto;
     }
 
     @ModelAttribute
@@ -33,6 +37,7 @@ public class ModeloGlobal {
                 .map(u -> solicitudes.countParaResponder(u.getId()))
                 .orElse(0L));
         model.addAttribute("estados", Estados.TODOS);
+        model.addAttribute("registroAbierto", registroAbierto);
     }
 
     @ExceptionHandler(UsuarioNoRegistradoException.class)

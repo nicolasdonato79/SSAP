@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Revisá tu email — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <ol th:replace="~{fragmentos/alta :: pasos(3, ${conTelefono})}"></ol>
+        <h1>Revisá tu email</h1>
+        <p><th:block th:if="${conTelefono}">Teléfono verificado. </th:block>Te mandamos un link a <strong th:text="${email}"></strong> para activar la cuenta.
+            Abrilo desde el celular o la computadora, y listo.</p>
+        <p class="chico">Si no aparece en unos minutos, revisá la carpeta de spam o correo no deseado. El link vence en 24 horas.</p>
+
+        <p class="prueba" th:if="${linkPrueba}">
+            Modo prueba (email sin configurar):
+            <a th:href="${linkPrueba}" th:text="${linkPrueba}"></a>
+        </p>
+        <p class="msg msg-ok" th:if="${ok}" th:text="${ok}"></p>
+        <p class="msg msg-error" th:if="${error}" th:text="${error}"></p>
+
+        <div class="pie-caja">
+            <form th:action="@{/registro/email/reenviar}" method="post" style="display:inline">
+                <button type="submit" class="btn-enlace">Mandarme el link de nuevo</button>
+            </form>
+            <span class="chico">o <a href="/registro">corregir el email</a></span>
+        </div>
+    </div>
+</main>
+</body>
+</html>

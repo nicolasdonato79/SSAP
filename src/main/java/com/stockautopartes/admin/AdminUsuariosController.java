@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Administración (solo ADMIN, ver SecurityConfig):
@@ -74,15 +73,7 @@ public class AdminUsuariosController {
             usuarios.save(nuevo);
             flash.addFlashAttribute("ok", "Usuario " + nuevo.getUsername() + " creado"
                     + (nuevo.getMarcas().isEmpty() ? "." : " con " + nuevo.getMarcas().size() + " marca(s)."));
-            return "redirect:/admin/usuarios";
         }
-        // con error, el formulario vuelve con lo que se había escrito
-        flash.addFlashAttribute("nuevo", Map.of(
-                "username", username,
-                "nombre", nombre,
-                "password", password,
-                "admin", admin,
-                "marcas", marcasElegidas == null ? List.<Integer>of() : marcasElegidas));
         return "redirect:/admin/usuarios";
     }
 
@@ -152,6 +143,8 @@ public class AdminUsuariosController {
         model.addAttribute("ciudades", perfil.ciudadesDe(form.getEstado()));
         model.addAttribute("seleccionada", form.getCiudad());
         model.addAttribute("estadoElegido", !form.getEstado().isBlank());
+        model.addAttribute("telefonoVerificado", u.isTelefonoVerificado());
+        model.addAttribute("emailVerificado", u.isEmailVerificado());
         model.addAttribute("errores", errores);
         model.addAttribute("gruposMarcas", marcas.agrupadas());
         model.addAttribute("accion", "/admin/usuarios/" + u.getId() + "/configuracion");
