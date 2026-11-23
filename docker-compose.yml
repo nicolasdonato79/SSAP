@@ -1,15 +1,62 @@
+# Ambiente único: base + app + túnel de Cloudflare (https://stock.gochosoftware.com).
+# Todo arranca solo cuando arranca Docker.
+#   Levantar / redeploy:  docker compose up -d --build
+#   Ver estado:           docker compose ps
+#   Logs de la app:       docker compose logs -f app
+# La base escucha en localhost:5434 (DBeaver). mvn spring-boot:run usa esta misma base.
+name: ssap-server
+
 services:
-  postgres:
+  db:
     image: postgres:17
-    container_name: stockautopartes-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: stockautopartes
       POSTGRES_USER: stock
-      POSTGRES_PASSWORD: stock
-    ports:
-      - "5433:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5434:5432"   # solo accesible desde esta PC (para DBeaver/pgAdmin)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stock -d stockautopartes"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/stockautopartes
+      DB_USER: stock
+      DB_PASSWORD: ${DB_PASSWORD}
+      OTP_EN_PANTALLA: "false"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
+      TZ: America/Caracas
+    ports:
+      - "127.0.0.1:8081:8080"   # para probar desde esta PC: http://localhost:8081
+
+  # Túnel rápido (solo si hace falta una URL temporal): docker compose --profile rapido up -d
+  tunel-rapido:
+    image: cloudflare/cloudflared:latest
+    profiles: ["rapido"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 --url http://app:8080
+    depends_on: [app]
+
+  # Túnel fijo (stock.gochosoftware.com). Necesita TUNNEL_TOKEN en .env.
+  tunel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on: [app]
 
 volumes:
-  pgdata:
+  pgdata:   # volumen ssap-server_pgdata
