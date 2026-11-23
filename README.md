@@ -13,17 +13,16 @@ que se les avisa cuando alguien carga el repuesto.
 
 ## Levantarlo
 
+Hay un solo ambiente: base + app + túnel de Cloudflare, en `docker-compose.yml`.
+Las claves van en `.env` (no se sube a git): `DB_PASSWORD` y `TUNNEL_TOKEN`.
+
 ```bash
-docker compose up -d          # Postgres en localhost:5433 (usuario/clave: stock/stock)
-mvn spring-boot:run           # http://localhost:8080
+docker compose up -d --build   # base (localhost:5434), app (localhost:8081) y https://stock.gochosoftware.com
+docker compose logs -f app     # logs
 ```
 
-Si la app no se puede conectar a la base (`password authentication failed for user "stock"`):
-
-- El Postgres de Docker escucha en **5433** para no chocar con un PostgreSQL instalado en Windows (5432).
-- Usuario y clave se aplican **solo la primera vez** que se crea el volumen. Si el volumen ya existía,
-  recrealo (borra los datos): `docker compose down -v` y después `docker compose up -d`.
-- Para usar otra base: variables `DB_URL`, `DB_USER`, `DB_PASSWORD`.
+Para programar con recarga rápida: `mvn spring-boot:run` (http://localhost:8080) usa **la misma base**
+(toma `DB_PASSWORD` del `.env`). Para ver la base: DBeaver a `localhost:5434`, usuario `stock`.
 
 Para probar: entrá con `admin`, `jean` o `carlos`, completá **Mi perfil**,
 subí `plantilla-stock.xlsx` en **Mi stock** y buscá en `/`.

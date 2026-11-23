@@ -1,0 +1,61 @@
+# Server de prueba: base + app + túnel de Cloudflare. Todo arranca solo cuando arranca Docker.
+#   Levantar:            docker compose -f docker-compose.server.yml --profile rapido up -d --build
+#   Ver la URL pública:  docker compose -f docker-compose.server.yml logs tunel-rapido
+# (Para desarrollo seguí usando docker-compose.yml + mvn spring-boot:run; son bases separadas.)
+name: ssap-server
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stockautopartes
+      POSTGRES_USER: stock
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5434:5432"   # solo accesible desde esta PC (para DBeaver/pgAdmin)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stock -d stockautopartes"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/stockautopartes
+      DB_USER: stock
+      DB_PASSWORD: ${DB_PASSWORD}
+      OTP_EN_PANTALLA: "false"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
+      TZ: America/Caracas
+    ports:
+      - "127.0.0.1:8081:8080"   # para probar desde esta PC: http://localhost:8081
+
+  # Túnel rápido: URL gratis *.trycloudflare.com, sin cuenta ni dominio. Cambia si se reinicia el túnel.
+  tunel-rapido:
+    image: cloudflare/cloudflared:latest
+    profiles: ["rapido"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 --url http://app:8080
+    depends_on: [app]
+
+  # Túnel fijo: con dominio propio en Cloudflare. Necesita TUNNEL_TOKEN en .env.
+  tunel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["fijo"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on: [app]
+
+volumes:
+  pgdata:
