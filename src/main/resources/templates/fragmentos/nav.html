@@ -31,6 +31,7 @@
             <svg th:replace="~{fragmentos/nav :: logo}"></svg>
             STOCK <span>multimarca</span>
         </a>
+        <small th:if="${versionApp}" class="version-app" th:text="${versionApp}" title="Versión del programa">V.1.0.0</small>
         <ul class="menu">
             <li><a href="/" th:attr="aria-current=${activo == 'buscar'} ? 'page' : null">Buscar</a></li>
             <li><a href="/mi-stock" th:attr="aria-current=${activo == 'stock'} ? 'page' : null">Mi stock</a></li>
@@ -72,7 +73,7 @@
 <footer th:fragment="pie" class="pie">
     <div class="wrap">
         <span>Stock Multimarca — repuestos entre vendedores de toda Venezuela</span>
-        <span>Hecho por <a href="https://gochosoftware.com" target="_blank" rel="noopener">Gocho Software</a></span>
+        <span><th:block th:if="${versionApp}" th:text="${versionApp + ' · '}"></th:block>Hecho por <a href="https://gochosoftware.com" target="_blank" rel="noopener">Gocho Software</a></span>
     </div>
 </footer>
 

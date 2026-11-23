@@ -37,6 +37,8 @@ spring:
       max-request-size: 20MB
 
 app:
+  # Versión del programa: la toma del <version> del pom.xml al compilar (se muestra en el encabezado).
+  version: "@project.version@"
   # Dirección pública de la app, para los links que van por email.
   url-publica: ${APP_URL:http://localhost:${server.port:8080}}
   registro:

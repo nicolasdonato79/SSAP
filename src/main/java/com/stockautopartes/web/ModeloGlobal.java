@@ -19,12 +19,16 @@ public class ModeloGlobal {
     private final SolicitudRepository solicitudes;
 
     private final boolean registroAbierto;
+    private final String version;
 
     public ModeloGlobal(UsuarioActual usuarioActual, SolicitudRepository solicitudes,
-                        @org.springframework.beans.factory.annotation.Value("${app.registro.habilitado}") boolean registroAbierto) {
+                        @org.springframework.beans.factory.annotation.Value("${app.registro.habilitado}") boolean registroAbierto,
+                        @org.springframework.beans.factory.annotation.Value("${app.version:}") String version) {
         this.usuarioActual = usuarioActual;
         this.solicitudes = solicitudes;
         this.registroAbierto = registroAbierto;
+        // Si se corre sin pasar por Maven queda "@project.version@" sin reemplazar: en ese caso no se muestra.
+        this.version = version.isBlank() || version.startsWith("@") ? null : "V." + version;
     }
 
     @ModelAttribute
@@ -41,6 +45,7 @@ public class ModeloGlobal {
                 .orElse(0L));
         model.addAttribute("estados", Estados.TODOS);
         model.addAttribute("registroAbierto", registroAbierto);
+        model.addAttribute("versionApp", version);
     }
 
     @ExceptionHandler(UsuarioNoRegistradoException.class)

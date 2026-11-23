@@ -61,6 +61,8 @@ small, .chico { font-size: 14px; color: var(--muted); }
   color: var(--navy); text-decoration: none; white-space: nowrap;
 }
 .logo span { font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.version-app { margin-left: -14px; align-self: center; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px;
+  color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .menu { display: flex; align-items: center; gap: 4px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
 .menu a {
   display: inline-block; padding: 8px 12px; border-radius: 8px;
@@ -258,6 +260,7 @@ details.panel[open] > summary { margin-bottom: 14px; }
   .top .wrap { flex-wrap: wrap; gap: 6px 10px; padding-block: 8px; }
   .menu { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; }
   .menu a { white-space: nowrap; }
+  .version-app { margin-left: 0; }
   .usuario-actual { max-width: 140px; padding: 4px 10px; font-size: 14px; }
   .banda-busqueda { padding: 32px 0 28px; }
   .buscador-fila input[type=search] { font-size: 17px; padding: 10px; }
