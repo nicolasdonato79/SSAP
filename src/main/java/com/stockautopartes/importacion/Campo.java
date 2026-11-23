@@ -12,7 +12,7 @@ import java.util.Optional;
 public enum Campo {
 
     CODIGO(true, List.of("codigo", "cod", "codigoproducto", "codproducto", "codigooem", "oem", "referencia", "ref",
-            "sku", "parte", "nroparte", "nparte", "ndeparte", "numeroparte", "numerodeparte", "partnumber", "pn",
+            "sku", "parte", "nroparte", "nrodeparte", "nparte", "ndeparte", "numeroparte", "numerodeparte", "partnumber", "pn",
             "recambio", "pieza"),
             List.of("codigo", "cod", "numerodere", "numerore", "nrodere", "nrore", "nderecambio", "nrecambio",
                     "numerodepieza", "numeropieza", "nrodepieza", "nropieza", "ndepieza", "npieza")),

@@ -34,14 +34,20 @@ public class BusquedaController {
                          @RequestParam(required = false) String estado,
                          @RequestParam(required = false) String ciudad,
                          @RequestParam(required = false) Integer marca,
+                         @RequestParam(defaultValue = "") String modelo,
+                         @RequestParam(defaultValue = "1") int pagina,
+                         @RequestParam(defaultValue = "10") int tamanio,
                          Model model) {
         String texto = q.trim();
+        String modeloFiltro = modelo.trim().length() >= 2 ? modelo.trim() : null;
         String codigo = CodigoNormalizer.normalizar(texto);
         List<ItemStock> resultados = List.of();
         Set<String> codigos = Set.of();
-        if (texto.length() >= 3) {
+        // Se busca con 3 letras o más, o solo con el modelo (ej. todo lo de "Ranger" en Ford)
+        boolean busco = texto.length() >= 3 || modeloFiltro != null;
+        if (busco) {
             // El buscado + todo lo que lo reemplaza o es equivalente
-            codigos = equivalencias.codigosQueSirvenPara(codigo);
+            codigos = texto.length() >= 3 ? equivalencias.codigosQueSirvenPara(codigo) : Set.of();
             if (codigos.isEmpty()) {
                 codigos = Set.of(codigo);
             }
@@ -49,9 +55,14 @@ public class BusquedaController {
             // La ciudad solo filtra si es del estado elegido (al cambiar de estado puede llegar la anterior)
             String ciudadFiltro = (estadoFiltro == null || ciudad == null || ciudad.isBlank()) ? null
                     : ciudades.buscar(estadoFiltro, ciudad).orElse(null);
-            resultados = items.buscar(codigo, codigos, texto, estadoFiltro, ciudadFiltro, marca);
+            org.springframework.data.domain.Page<ItemStock> pag = items.buscar(codigo, codigos, texto,
+                    estadoFiltro, ciudadFiltro, marca, modeloFiltro, com.stockautopartes.web.Paginas.pedirElegido(pagina, tamanio));
+            resultados = pag.getContent();
+            model.addAttribute("pag", pag);
         }
         model.addAttribute("q", texto);
+        model.addAttribute("busco", busco);
+        model.addAttribute("modelo", modeloFiltro);
         model.addAttribute("codigoBuscado", codigo);
         model.addAttribute("equivalentes", codigos);
         model.addAttribute("resultados", resultados);

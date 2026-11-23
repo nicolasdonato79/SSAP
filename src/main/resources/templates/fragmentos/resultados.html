@@ -3,13 +3,14 @@
 <body>
 
 <div th:fragment="resultados">
-    <p th:if="${q.length() < 3}" class="chico">Escribí al menos 3 letras o números.</p>
+    <p th:unless="${busco}" class="chico">Escribí al menos 3 letras o números, o el modelo del vehículo.</p>
 
-    <div th:if="${q.length() >= 3 and resultados.isEmpty()}" class="lista">
+    <div th:if="${busco and resultados.isEmpty()}" class="lista">
         <div class="vacio">
-            <p>Nadie tiene cargado <strong th:text="${q}"></strong> por ahora.</p>
-            <p th:unless="${logueado}"><a href="/login">Entrá</a> para dejar el pedido y te avisamos cuando alguien lo cargue.</p>
-            <form th:if="${logueado}" th:action="@{/demandas}" method="post" hx-post="/demandas" hx-swap="outerHTML">
+            <p th:if="${q.length() >= 3}">Nadie tiene cargado <strong th:text="${q}"></strong> por ahora.</p>
+            <p th:if="${q.length() < 3}">No hay repuestos cargados para <strong th:text="${modelo}"></strong> con esos filtros.</p>
+            <p th:if="${q.length() >= 3 and !logueado}"><a href="/login">Entrá</a> para dejar el pedido y te avisamos cuando alguien lo cargue.</p>
+            <form th:if="${logueado and q.length() >= 3}" th:action="@{/demandas}" method="post" hx-post="/demandas" hx-swap="outerHTML">
                 <input type="hidden" name="texto" th:value="${q}">
                 <button type="submit">Avisarme cuando aparezca</button>
             </form>
@@ -18,7 +19,7 @@
 
     <th:block th:unless="${resultados.isEmpty()}">
         <div class="resultados-cabecera">
-            <span th:text="${resultados.size() == 1 ? '1 resultado' : resultados.size() + ' resultados'}"></span>
+            <span th:text="${pag.totalElements == 1 ? '1 resultado' : pag.totalElements + ' resultados'}"></span>
         </div>
         <div class="lista">
             <article class="resultado" th:each="item : ${resultados}">
@@ -27,13 +28,19 @@
                           th:if="${item.codigoNormalizado != codigoBuscado and equivalentes.contains(item.codigoNormalizado)}"
                           th:text="${'Reemplaza o equivale a ' + q}"></span>
                     <h3 th:text="${item.descripcion ?: item.codigoOriginal}"></h3>
+                    <p class="vehiculo-linea">
+                        <span class="marca-item" th:text="${item.marca != null ? item.marca.etiqueta : 'Sin marca'}"></span>
+                        <span th:if="${item.vehiculo}" th:text="${item.vehiculo}"></span>
+                        <span th:unless="${item.vehiculo}" class="chico">Modelo no indicado</span>
+                    </p>
                     <p class="meta">
                         Código <span class="codigo" th:text="${item.codigoOriginal}"></span>
                         <th:block th:if="${item.marcaRepuesto}">, marca <span th:text="${item.marcaRepuesto}"></span></th:block>
-                        <th:block th:if="${item.vehiculo}">, para <span th:text="${item.vehiculo}"></span></th:block>
                     </p>
                     <p class="vendedor">
-                        <strong th:text="${item.vendedor.nombre}"></strong>
+                        <!-- Sin entrar no se ve quién es: evita que lo contacten por fuera del sistema -->
+                        <strong th:text="${logueado} ? ${item.vendedor.nombre} : ${@privacidad.ocultar(item.vendedor.nombre)}"
+                                th:title="${logueado} ? null : 'Entrá para ver quién lo vende'"></strong>
                         en <span th:text="${item.vendedor.ciudad}"></span>, <span th:text="${item.vendedor.estado}"></span>
                     </p>
                     <p class="meta" th:if="${item.vendedor.marcasResumen != ''}"
@@ -61,6 +68,11 @@
                 </div>
             </article>
         </div>
+        <!-- Las páginas repiten la búsqueda con los filtros actuales del formulario -->
+        <th:block th:with="pagUrl='/buscar', pagParam='pagina', pagObjetivo='#resultados',
+                           pagSwap='innerHTML show:#resultados:top', pagIncluir='form.buscador'">
+            <nav th:replace="~{fragmentos/paginacion :: paginador}"></nav>
+        </th:block>
     </th:block>
 </div>
 

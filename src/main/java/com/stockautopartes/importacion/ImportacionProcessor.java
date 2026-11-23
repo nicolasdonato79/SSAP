@@ -35,6 +35,8 @@ public class ImportacionProcessor {
     private final StockWriter stockWriter;
     private final MatchingService matching;
     private final EquivalenciaService equivalencias;
+    private final com.stockautopartes.marca.DetectorMarca detectorMarca;
+    private final com.stockautopartes.inventario.AsignadorMarca asignadorMarca;
     private final TransactionTemplate tx;
     private final int maxErroresGuardados;
 
@@ -44,6 +46,8 @@ public class ImportacionProcessor {
                                 StockWriter stockWriter,
                                 MatchingService matching,
                                 EquivalenciaService equivalencias,
+                                com.stockautopartes.marca.DetectorMarca detectorMarca,
+                                com.stockautopartes.inventario.AsignadorMarca asignadorMarca,
                                 TransactionTemplate tx,
                                 @Value("${app.importacion.max-errores-guardados}") int maxErroresGuardados) {
         this.importaciones = importaciones;
@@ -52,6 +56,8 @@ public class ImportacionProcessor {
         this.stockWriter = stockWriter;
         this.matching = matching;
         this.equivalencias = equivalencias;
+        this.detectorMarca = detectorMarca;
+        this.asignadorMarca = asignadorMarca;
         this.tx = tx;
         this.maxErroresGuardados = maxErroresGuardados;
     }
@@ -65,7 +71,9 @@ public class ImportacionProcessor {
 
             tx.executeWithoutResult(status -> {
                 Importacion imp = importaciones.findById(importacionId).orElseThrow();
-                stockWriter.reemplazarStock(imp.getUsuarioId(), resultado.filasOk(), ahora);
+                Set<Integer> marcasVendedor = asignadorMarca.marcasDe(imp.getUsuarioId());
+                stockWriter.reemplazarStock(imp.getUsuarioId(), resultado.filasOk(), ahora,
+                        f -> detectorMarca.detectar(f.vehiculo(), f.marca(), f.descripcion(), marcasVendedor));
                 equivalencias.registrar(relaciones(resultado.filasOk()), imp.getUsuarioId());
                 usuarios.findById(imp.getUsuarioId()).ifPresent(u -> u.setUltimaCarga(ahora));
                 String errores = resultado.errores().stream()

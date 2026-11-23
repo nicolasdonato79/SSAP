@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Paginador con selector de 10/20/30 por página. Se usa dentro de un th:block con estas variables:
+    pag         la Page de Spring
+    pagUrl      URL base (puede traer otros parámetros: "/pedidos?enviados=2")
+    pagParam    nombre del parámetro de página ("pagina")
+    pagTamParam opcional: nombre del parámetro de tamaño (por defecto "tamanio")
+    pagObjetivo opcional: con HTMX, dónde va la respuesta ("#resultados"). Sin esto son links comunes.
+    pagSwap     opcional: hx-swap
+    pagIncluir  opcional: hx-include (ej. el formulario de búsqueda)
+-->
+<nav th:fragment="paginador" class="paginador" aria-label="Páginas"
+     th:if="${pag != null and pag.totalElements > 10}"
+     th:with="sep=${#strings.contains(pagUrl, '?')} ? '&' : '?', actual=${pag.number + 1},
+              tp=${pagTamParam ?: 'tamanio'}, tam=${'&' + tp + '=' + pag.size}">
+    <p class="paginador-info"
+       th:text="${'Mostrando ' + (pag.number * pag.size + 1) + '–' + (pag.number * pag.size + pag.numberOfElements)
+               + ' de ' + pag.totalElements}"></p>
+
+    <div class="paginador-tamanio">
+        <span class="chico">Ver</span>
+        <th:block th:each="t : ${@paginas.tamanios()}" th:with="enlace=${pagUrl + sep + pagParam + '=1&' + tp + '=' + t}">
+            <span th:if="${t == pag.size}" class="actual" aria-current="true" th:text="${t}"></span>
+            <a th:unless="${t == pag.size}" th:href="${enlace}" th:text="${t}"
+               th:attr="aria-label=${'Ver ' + t + ' por página'}, hx-get=${pagObjetivo != null ? enlace : null},
+                        hx-target=${pagObjetivo}, hx-swap=${pagSwap}, hx-include=${pagIncluir}"></a>
+        </th:block>
+        <span class="chico">por página</span>
+    </div>
+
+    <ul th:if="${pag.totalPages > 1}">
+        <li th:if="${pag.hasPrevious()}" th:with="enlace=${pagUrl + sep + pagParam + '=' + (actual - 1) + tam}">
+            <a th:href="${enlace}" rel="prev"
+               th:attr="hx-get=${pagObjetivo != null ? enlace : null}, hx-target=${pagObjetivo},
+                        hx-swap=${pagSwap}, hx-include=${pagIncluir}">‹ Anterior</a>
+        </li>
+        <li th:each="n : ${@paginas.numeros(pag)}" th:with="enlace=${pagUrl + sep + pagParam + '=' + n + tam}">
+            <span th:if="${n == 0}" class="hueco">…</span>
+            <span th:if="${n == actual}" class="actual" aria-current="page" th:text="${n}"></span>
+            <a th:if="${n != 0 and n != actual}" th:href="${enlace}" th:text="${n}"
+               th:attr="hx-get=${pagObjetivo != null ? enlace : null}, hx-target=${pagObjetivo},
+                        hx-swap=${pagSwap}, hx-include=${pagIncluir}"></a>
+        </li>
+        <li th:if="${pag.hasNext()}" th:with="enlace=${pagUrl + sep + pagParam + '=' + (actual + 1) + tam}">
+            <a th:href="${enlace}" rel="next"
+               th:attr="hx-get=${pagObjetivo != null ? enlace : null}, hx-target=${pagObjetivo},
+                        hx-swap=${pagSwap}, hx-include=${pagIncluir}">Siguiente ›</a>
+        </li>
+    </ul>
+</nav>
+
+</body>
+</html>

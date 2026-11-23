@@ -39,8 +39,11 @@ public class AdminUsuariosController {
     }
 
     @GetMapping("/usuarios")
-    public String lista(Model model) {
-        model.addAttribute("usuarios", usuarios.findAllByOrderByUsernameAsc());
+    public String lista(@RequestParam(defaultValue = "1") int pagina,
+                        @RequestParam(defaultValue = "10") int tamanio, Model model) {
+        var pag = usuarios.findAllByOrderByUsernameAsc(com.stockautopartes.web.Paginas.pedirElegido(pagina, tamanio));
+        model.addAttribute("usuarios", pag.getContent());
+        model.addAttribute("pag", pag);
         model.addAttribute("gruposMarcas", marcas.agrupadas());
         model.addAttribute("tiposMarca", Marca.Tipo.values());
         return "admin-usuarios";
