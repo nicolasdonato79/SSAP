@@ -3,6 +3,8 @@ package com.stockautopartes.config;
 import com.stockautopartes.usuario.UsuarioRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +30,8 @@ public class SecurityConfig {
                                     UsuarioRepository usuarios) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/buscar", "/ciudades", "/plantilla.xlsx", "/login", "/error", "/favicon.ico", "/css/**", "/img/**").permitAll()
+                .requestMatchers("/", "/buscar", "/ciudades", "/plantilla.xlsx", "/login", "/error", "/favicon.ico", "/css/**", "/img/**",
+                                 "/registro", "/registro/**", "/recuperar", "/recuperar/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .securityContext(ctx -> ctx.securityContextRepository(contextRepository))
@@ -46,7 +49,11 @@ public class SecurityConfig {
                 .loginPage("/login")
                 // perfil incompleto: al inicio con aviso; completo: a la página que pidió, o al inicio
                 .successHandler(new LoginExitosoHandler(usuarios, requestCache))
-                .failureUrl("/login?error")
+                // Distingue: registro sin verificar, cuenta desactivada, o datos incorrectos
+                .failureHandler((req, res, ex) -> res.sendRedirect(
+                        ex instanceof LockedException ? "/login?pendiente"
+                                : ex instanceof DisabledException ? "/login?desactivado"
+                                : "/login?error"))
                 .permitAll())
             .httpBasic(basic -> basic.disable())
             .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"));

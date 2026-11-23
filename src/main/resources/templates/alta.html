@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Crear cuenta — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja login-caja-ancha">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <ol th:replace="~{fragmentos/alta :: pasos(1, ${conTelefono})}"></ol>
+        <h1>Crear cuenta</h1>
+        <p class="chico" th:if="${conTelefono}">Te vamos a mandar un código por SMS para verificar el teléfono y un link por email para activar la cuenta.</p>
+        <p class="chico" th:unless="${conTelefono}">Te vamos a mandar un link por email para activar la cuenta.</p>
+
+        <div class="msg msg-error" th:if="${errores}">
+            <ul><li th:each="e : ${errores}" th:text="${e}"></li></ul>
+        </div>
+
+        <form th:action="@{/registro}" method="post" th:object="${form}">
+            <div class="campo">
+                <label for="nombre">Tu nombre o el de tu negocio</label>
+                <input class="ancho" id="nombre" th:field="*{nombre}" maxlength="150" required autocomplete="organization">
+            </div>
+            <div class="campo">
+                <label for="username">Usuario</label>
+                <input class="ancho" id="username" th:field="*{username}" maxlength="50" required
+                       autocapitalize="none" spellcheck="false" autocomplete="username" pattern="[a-zA-Z0-9._\-]{3,50}">
+                <small>Para entrar. Letras, números, punto o guion. También vas a poder entrar con el email.</small>
+            </div>
+            <div class="campo">
+                <label for="telefono">Teléfono celular</label>
+                <input class="ancho" id="telefono" th:field="*{telefono}" type="tel" inputmode="tel" required
+                       placeholder="0412-1234567" autocomplete="tel">
+                <small><th:block th:if="${conTelefono}">Te llega un código por SMS. </th:block>Si no es de Venezuela, con código de país: +54 9 11 1234-5678</small>
+            </div>
+            <div class="campo">
+                <label for="email">Email</label>
+                <input class="ancho" id="email" th:field="*{email}" type="email" required maxlength="150" autocomplete="email">
+            </div>
+            <div class="campo">
+                <label for="password">Contraseña</label>
+                <input class="ancho" id="password" th:field="*{password}" type="password" required
+                       th:minlength="${minPassword}" autocomplete="new-password">
+                <small th:text="${'Mínimo ' + minPassword + ' caracteres.'}"></small>
+            </div>
+            <div class="campo">
+                <label for="repetida">Repetí la contraseña</label>
+                <input class="ancho" id="repetida" th:field="*{repetida}" type="password" required autocomplete="new-password">
+            </div>
+            <button type="submit">Continuar</button>
+        </form>
+        <p class="pie-caja">¿Ya tenés cuenta? <a href="/login">Entrá</a></p>
+    </div>
+</main>
+</body>
+</html>

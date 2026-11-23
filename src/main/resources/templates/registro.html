@@ -35,12 +35,16 @@
                 <div class="campo">
                     <label for="telefono">Teléfono con WhatsApp</label>
                     <input class="ancho" id="telefono" name="telefono" type="tel" inputmode="tel"
-                           placeholder="0412-1234567" th:value="${form.telefono}" th:required="${esPropio}">
-                    <small>Si no es de Venezuela, con código de país: +54 9 11 1234-5678</small>
+                           placeholder="0412-1234567" th:value="${form.telefono}" th:required="${esPropio}"
+                           th:readonly="${esPropio and telefonoVerificado}">
+                    <small th:if="${esPropio and telefonoVerificado}">Verificado. Para cambiarlo, escribile al administrador.</small>
+                    <small th:unless="${esPropio and telefonoVerificado}">Si no es de Venezuela, con código de país: +54 9 11 1234-5678</small>
                 </div>
                 <div class="campo">
                     <label for="email">Email <small style="display:inline">(opcional)</small></label>
-                    <input class="ancho" id="email" name="email" type="email" th:value="${form.email}" maxlength="150">
+                    <input class="ancho" id="email" name="email" type="email" th:value="${form.email}" maxlength="150"
+                           th:readonly="${esPropio and emailVerificado}">
+                    <small th:if="${esPropio and emailVerificado}">Verificado. Para cambiarlo, escribile al administrador.</small>
                 </div>
             </fieldset>
 

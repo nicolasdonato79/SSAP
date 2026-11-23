@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
@@ -71,8 +72,12 @@ public class OtpService {
         return (enviador.esDePrueba() && mostrarEnPantalla) ? Optional.of(codigo) : Optional.empty();
     }
 
-    /** true si el código es el último pedido, no venció, no se usó y no se agotaron los intentos. */
-    @Transactional
+    /**
+     * true si el código es el último pedido, no venció, no se usó y no se agotaron los intentos.
+     * Corre en su propia transacción: el intento queda contado aunque el paso que lo llamó falle
+     * (si no, un error haría rollback del contador y se podrían probar códigos sin límite).
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean verificar(String telefono, String codigo) {
         if (codigo == null || !codigo.matches("\\d{6}")) {
             return false;

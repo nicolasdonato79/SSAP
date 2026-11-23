@@ -16,14 +16,14 @@ import java.util.Map;
  * Manda el código con WhatsApp Cloud API (Meta), usando una plantilla de categoría
  * "Autenticación" con botón "Copiar código". El código va en el cuerpo y en el botón.
  *
- * Se activa con app.whatsapp.habilitado=true. Necesita:
+ * Se activa con app.otp.canal=whatsapp. Necesita:
  *   app.whatsapp.token            token de acceso (en producción, de un usuario del sistema)
  *   app.whatsapp.phone-number-id  ID del número emisor (no es el número de teléfono)
  *   app.whatsapp.plantilla        nombre de la plantilla aprobada
  *   app.whatsapp.idioma           idioma con que se creó la plantilla (ej. "es")
  */
 @Component
-@ConditionalOnProperty(name = "app.whatsapp.habilitado", havingValue = "true")
+@ConditionalOnProperty(name = "app.otp.canal", havingValue = "whatsapp")
 public class WhatsAppEnviadorOtp implements EnviadorOtp {
 
     private static final Logger log = LoggerFactory.getLogger(WhatsAppEnviadorOtp.class);

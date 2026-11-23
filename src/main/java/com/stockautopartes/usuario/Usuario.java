@@ -60,6 +60,16 @@ public class Usuario {
     @Column(nullable = false)
     private boolean verificado;
 
+    @Column(name = "telefono_verificado", nullable = false)
+    private boolean telefonoVerificado;
+
+    @Column(name = "email_verificado", nullable = false)
+    private boolean emailVerificado;
+
+    /** Se registró solo y todavía no verificó teléfono y email: no puede entrar. */
+    @Column(name = "pendiente_verificacion", nullable = false)
+    private boolean pendienteVerificacion;
+
     @Column(name = "ultima_carga")
     private Instant ultimaCarga;
 
@@ -74,6 +84,39 @@ public class Usuario {
         this.passwordHash = passwordHash;
         this.nombre = nombre;
         this.rol = rol;
+    }
+
+    /** Alta hecha por el propio usuario desde /registro: queda pendiente hasta verificar teléfono y email. */
+    public static Usuario autoregistro(String username, String passwordHash, String nombre,
+                                       String telefono, String email) {
+        Usuario u = new Usuario(username, passwordHash, nombre, Rol.USUARIO);
+        u.telefono = telefono;
+        u.email = email;
+        u.pendienteVerificacion = true;
+        return u;
+    }
+
+    public void marcarTelefonoVerificado() {
+        telefonoVerificado = true;
+        activarSiCorresponde();
+    }
+
+    public void marcarEmailVerificado() {
+        emailVerificado = true;
+        activarSiCorresponde();
+    }
+
+    /** Alta sin verificación de teléfono: con el email verificado alcanza para activar la cuenta. */
+    public void activarConEmailVerificado() {
+        if (pendienteVerificacion && emailVerificado) {
+            pendienteVerificacion = false;
+        }
+    }
+
+    private void activarSiCorresponde() {
+        if (pendienteVerificacion && telefonoVerificado && emailVerificado) {
+            pendienteVerificacion = false;
+        }
     }
 
     /** Teléfono, estado y ciudad cargados: puede publicar stock y hacer pedidos. */
@@ -92,6 +135,9 @@ public class Usuario {
 
     public void actualizarPerfil(String nombre, String telefono, String email, String estado, String ciudad) {
         this.nombre = nombre;
+        // Si cambia el teléfono o el email, deja de estar verificado
+        if (!Objects.equals(this.telefono, telefono)) telefonoVerificado = false;
+        if (email == null ? this.email != null : !email.equalsIgnoreCase(String.valueOf(this.email))) emailVerificado = false;
         this.telefono = telefono;
         this.email = email;
         this.estado = estado;
@@ -149,6 +195,9 @@ public class Usuario {
     public Set<Marca> getMarcas() { return marcas; }
     public List<Horario> getHorarios() { return horarios; }
     public boolean isVerificado() { return verificado; }
+    public boolean isTelefonoVerificado() { return telefonoVerificado; }
+    public boolean isEmailVerificado() { return emailVerificado; }
+    public boolean isPendienteVerificacion() { return pendienteVerificacion; }
     public Instant getUltimaCarga() { return ultimaCarga; }
     public Instant getCreadoEn() { return creadoEn; }
 }

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragmentos/nav :: head}"></th:block>
+    <title>Recuperar contraseña — Stock Multimarca</title>
+</head>
+<body>
+<header th:replace="~{fragmentos/nav :: nav('')}"></header>
+
+<main class="login-banda">
+    <div class="login-caja">
+        <div th:replace="~{fragmentos/alta :: marca}"></div>
+        <h1>¿Olvidaste tu contraseña?</h1>
+
+        <th:block th:unless="${enviado}">
+            <p class="chico">Escribí tu usuario o tu email y te mandamos un link para elegir una nueva.</p>
+            <form th:action="@{/recuperar}" method="post">
+                <div class="campo">
+                    <label for="dato">Usuario o email</label>
+                    <input class="ancho" id="dato" name="dato" required autofocus autocapitalize="none"
+                           spellcheck="false" autocomplete="username">
+                </div>
+                <button type="submit">Mandarme el link</button>
+            </form>
+        </th:block>
+
+        <th:block th:if="${enviado}">
+            <p class="msg msg-ok">Si hay una cuenta con ese usuario o email, te mandamos un link para elegir una
+                contraseña nueva. Vence en 1 hora.</p>
+            <p class="chico">Revisá también la carpeta de spam. Si tu cuenta no tiene email, pedile al administrador
+                que te cambie la contraseña.</p>
+            <p class="prueba" th:if="${linkPrueba}">
+                Modo prueba (email sin configurar): <a th:href="${linkPrueba}" th:text="${linkPrueba}"></a>
+            </p>
+        </th:block>
+
+        <p class="pie-caja"><a href="/login">Volver a entrar</a></p>
+    </div>
+</main>
+</body>
+</html>

@@ -14,7 +14,7 @@ que se les avisa cuando alguien carga el repuesto.
 ## Levantarlo
 
 Hay un solo ambiente: base + app + túnel de Cloudflare, en `docker-compose.yml`.
-Las claves van en `.env` (no se sube a git): `DB_PASSWORD` y `TUNNEL_TOKEN`.
+Las claves van en `.env` (no se sube a git): `DB_PASSWORD`, `TUNNEL_TOKEN` y, cuando se configuren, las de Twilio y SMTP.
 
 ```bash
 docker compose up -d --build   # base (localhost:5434), app (localhost:8081) y https://stock.gochosoftware.com
@@ -24,19 +24,43 @@ docker compose logs -f app     # logs
 Para programar con recarga rápida: `mvn spring-boot:run` (http://localhost:8080) usa **la misma base**
 (toma `DB_PASSWORD` del `.env`). Para ver la base: DBeaver a `localhost:5434`, usuario `stock`.
 
-Para probar: entrá con `admin`, `jean` o `carlos`, completá **Mi perfil**,
+Para probar: creá una cuenta en `/registro` (en modo prueba el código y el link salen en pantalla),
+o entrá con `admin`, `jean` o `carlos`, completá **⚙ Configuración**,
 subí `plantilla-stock.xlsx` en **Mi stock** y buscá en `/`.
 
-## Login
+## Login y alta de usuarios
 
-- **Usuario y contraseña** (formulario de Spring Security, contraseñas con BCrypt, sesión de 30 días).
-- No hay registro abierto: los usuarios los crea el **administrador** en `/admin/usuarios`
-  (alta, cambio de contraseña, activar/desactivar).
-- Usuarios iniciales (migración `V5`): `admin` (administrador), `jean`, `carlos`. Conviene cambiarles la
-  contraseña desde Administración.
-- En el primer ingreso cada uno completa **⚙ Configuración**: nombre, teléfono con WhatsApp, email (opcional),
-  estado, ciudad, marcas que trabaja y horarios de atención. Sin teléfono, estado y ciudad no puede cargar stock
-  ni hacer pedidos. Desde ahí también cambia su contraseña.
+- **Usuario (o email) y contraseña**, con BCrypt y sesión de 30 días.
+- **Alta automática** en `/registro` (issue #1), en 3 pasos:
+  1. Datos: nombre o negocio, usuario, teléfono, email y contraseña (mínimo 8 caracteres).
+  2. Teléfono: código de 6 números por **SMS** (vence en 5 minutos, 5 intentos, máximo 3 códigos cada 10 minutos).
+  3. Email: **link de activación** (vence en 24 horas). Recién ahí la cuenta queda activa.
+  Mientras no termina, la cuenta queda "pendiente" y no puede entrar. Si se equivocó o no le llegó nada,
+  vuelve a registrarse con los mismos datos y el registro pendiente se pisa. Los pendientes se borran a las 48 horas.
+  En el primer ingreso aparece el aviso para completar estado, ciudad, marcas y horarios.
+- **Recuperar contraseña** en `/recuperar`: con el usuario o el email llega un link (vence en 1 hora, un solo uso).
+  La pantalla dice siempre lo mismo, exista o no la cuenta.
+- Teléfono y email verificados no se pueden cambiar desde ⚙ (el admin sí; si los cambia, dejan de estar verificados).
+- El administrador sigue pudiendo crear usuarios en `/admin/usuarios`. Usuarios iniciales: `admin`, `jean`, `carlos`.
+- Los links del email son de un solo uso; en la base se guarda solo su hash (tabla `token_usuario`).
+
+### Modo prueba y proveedores
+
+Sin configurar nada, el SMS y el email **no salen**: el código y el link se escriben en la consola y, con
+`OTP_EN_PANTALLA=true` (por defecto en desarrollo), también aparecen en pantalla para poder probar.
+
+| Variable | Qué es |
+|---|---|
+| `REGISTRO_HABILITADO` | `true` abre `/registro`. En `docker-compose.yml` está en `false` hasta configurar SMS y email |
+| `APP_URL` | Dirección pública para los links (en el servidor: `https://stock.gochosoftware.com`) |
+| `VERIFICAR_TELEFONO` | `false` (por defecto): el alta es datos + link por email. `true`: además pide el código por SMS |
+| `OTP_CANAL` | `prueba` (por defecto), `sms` (Twilio) o `whatsapp` |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Credenciales de Twilio |
+| `TWILIO_FROM` | Número Twilio (`+1...`) o SID de un Messaging Service (`MG...`) |
+| `EMAIL_HABILITADO` | `true` para mandar los emails por SMTP |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | Servidor SMTP (ej. Gmail: `smtp.gmail.com`, 587, la cuenta y una contraseña de aplicación) |
+| `MAIL_FROM` | Remitente, ej. `Stock Multimarca <noresponder@gochosoftware.com>` |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_PLANTILLA`, `WHATSAPP_IDIOMA` | Solo si `OTP_CANAL=whatsapp` |
 
 ## Ciudades
 
@@ -58,25 +82,13 @@ subí `plantilla-stock.xlsx` en **Mi stock** y buscá en `/`.
   al comprador cuando le aceptan un pedido.
 - Público: `/`, `/buscar`, `/plantilla.xlsx`. Todo lo demás requiere login; `/admin/**` solo administradores.
 
-### Login por código de WhatsApp (para más adelante)
-
-El código ya está (`auth/OtpService`, `WhatsAppEnviadorOtp`, tabla `codigo_otp`) pero no se usa.
-Para activarlo hay que volver a exponer los pasos "pedir código" / "verificar" en `LoginController`.
-Variables de WhatsApp Cloud API:
-
-| Variable | Qué es |
-|---|---|
-| `WHATSAPP_HABILITADO` | `true` para mandar por WhatsApp |
-| `WHATSAPP_TOKEN` | Token de acceso de Meta |
-| `WHATSAPP_PHONE_NUMBER_ID` | ID del número emisor (en "API Setup") |
-| `WHATSAPP_PLANTILLA` | Plantilla de autenticación aprobada (por defecto `codigo_acceso`) |
-| `WHATSAPP_IDIOMA` | Idioma de la plantilla (por defecto `es`) |
-
 ## Paquetes
 
 | Paquete         | Qué hace |
 |-----------------|----------|
 | `auth`          | Pantalla de login, normalización de teléfonos y el login por código (OTP) para más adelante. |
+| `registro`      | Alta automática (SMS + link por email) y recuperar contraseña. |
+| `email`         | Envío de emails: SMTP o modo prueba. |
 | `admin`         | Administración de usuarios y del catálogo de marcas. |
 | `marca`         | Catálogo de marcas de vehículos. |
 | `usuario`       | Usuarios (vendedor y/o comprador) y registro. `UsuarioActual` es el único lugar que sabe quién está logueado. |
@@ -137,7 +149,8 @@ responder al usuario. El pedido guarda el precio publicado, la oferta y la contr
 
 ## Próximos pasos
 
-1. Login por código de WhatsApp (ya implementado, falta activarlo y configurar Meta).
+1. Configurar el SMTP (`EMAIL_HABILITADO=true` + `MAIL_*`) y abrir el registro en el servidor (`REGISTRO_HABILITADO=true`).
+   Segunda etapa: Twilio para el SMS (`OTP_CANAL=sms`, `VERIFICAR_TELEFONO=true`).
 2. `WhatsAppNotificador` con WhatsApp Cloud API (avisos de pedidos y coincidencias).
 3. Moneda: hoy todo es USD; definir si hace falta bolívares.
 4. Matching también por descripción, y no repetir avisos.

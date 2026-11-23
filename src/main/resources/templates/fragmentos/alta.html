@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Logo arriba de las cajas de login/alta -->
+<div th:fragment="marca" class="marca-login logo">
+    <svg th:replace="~{fragmentos/nav :: logo}"></svg>
+    STOCK <span>multimarca</span>
+</div>
+
+<!-- Pasos del alta. paso = 1 (datos), 2 (teléfono), 3 (email). Sin conTelefono no se muestra el paso 2. -->
+<ol th:fragment="pasos(paso, conTelefono)" class="pasos" aria-label="Pasos para crear la cuenta">
+    <li th:classappend="${paso == 1} ? 'actual' : 'hecho'" th:attr="aria-current=${paso == 1} ? 'step' : null">Tus datos</li>
+    <li th:if="${conTelefono}" th:classappend="${paso == 2} ? 'actual' : (${paso > 2} ? 'hecho' : '')"
+        th:attr="aria-current=${paso == 2} ? 'step' : null">Teléfono</li>
+    <li th:classappend="${paso == 3} ? 'actual' : ''" th:attr="aria-current=${paso == 3} ? 'step' : null">Email</li>
+</ol>
+
+</body>
+</html>

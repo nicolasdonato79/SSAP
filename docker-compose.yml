@@ -35,6 +35,24 @@ services:
       DB_USER: stock
       DB_PASSWORD: ${DB_PASSWORD}
       OTP_EN_PANTALLA: "false"
+      APP_URL: https://stock.gochosoftware.com
+      # Alta automática (issue #1). Cerrada hasta configurar SMS y email: en este servidor el modo prueba
+      # no muestra códigos ni links, así que nadie podría terminar de registrarse.
+      REGISTRO_HABILITADO: ${REGISTRO_HABILITADO:-false}
+      # true = el alta también pide el código por SMS (segunda etapa)
+      VERIFICAR_TELEFONO: ${VERIFICAR_TELEFONO:-false}
+      # Código por SMS: OTP_CANAL=sms + datos de Twilio en .env
+      OTP_CANAL: ${OTP_CANAL:-prueba}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM: ${TWILIO_FROM:-}
+      # Emails (activación y recuperar contraseña): EMAIL_HABILITADO=true + datos SMTP en .env
+      EMAIL_HABILITADO: ${EMAIL_HABILITADO:-false}
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Stock Multimarca <noresponder@gochosoftware.com>}
       SERVER_FORWARD_HEADERS_STRATEGY: framework
       SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
       TZ: America/Caracas

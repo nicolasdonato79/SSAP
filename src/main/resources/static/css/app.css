@@ -287,3 +287,23 @@ details.panel[open] > summary { margin-bottom: 14px; }
 .form-precio { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .form-precio label { margin: 0; font-size: 14px; }
 .form-precio input { width: 130px; }
+
+/* ---------- Alta de cuenta y recuperar contraseña ---------- */
+.pasos { display: flex; gap: 6px; list-style: none; padding: 0; margin: 0 0 18px; font-size: 14px; }
+.pasos li { flex: 1; padding: 6px 0 0; border-top: 4px solid var(--line); color: var(--muted); font-weight: 600; }
+.pasos li.hecho { border-color: var(--azul); color: var(--azul); }
+.pasos li.actual { border-color: var(--naranja); color: var(--navy); }
+.codigo-input { font: 700 28px/1 var(--display); letter-spacing: 10px; text-align: center; width: 100%; }
+.prueba { background: #FFF8E1; border: 1px dashed #E0B000; border-radius: 8px; padding: 10px 12px; font-size: 14px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.prueba strong { font-size: 18px; letter-spacing: 1px; }
+.login-caja .pie-caja { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; }
+.login-caja .btn-enlace { font-size: 15px; }
+.login-caja-ancha { max-width: 480px; }
+
+/* Botones que se ven como link (le ganan al estilo general de button[type=submit]) */
+button.btn-enlace, button.btn-enlace:hover {
+  background: none; border: 0; padding: 0; color: var(--azul); font-weight: 600; filter: none;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+button.btn-enlace:hover { color: var(--navy); }
+.login-caja button.btn-enlace { width: auto; font-size: 15px; }
