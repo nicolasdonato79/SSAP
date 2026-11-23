@@ -33,6 +33,9 @@ public class ModeloGlobal {
         model.addAttribute("logueado", usuarioActual.username().isPresent());
         model.addAttribute("esAdmin", yo.map(Usuario::isAdmin).orElse(false));
         model.addAttribute("usuarioId", yo.map(Usuario::getId).orElse(null));
+        // Para el label del encabezado (issue #2)
+        model.addAttribute("yoUsername", usuarioActual.username().orElse(null));
+        model.addAttribute("yoNombre", yo.map(Usuario::getNombre).orElse(null));
         model.addAttribute("pedidosPendientes", yo
                 .map(u -> solicitudes.countParaResponder(u.getId()))
                 .orElse(0L));

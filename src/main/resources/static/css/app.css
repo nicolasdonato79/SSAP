@@ -74,6 +74,14 @@ small, .chico { font-size: 14px; color: var(--muted); }
   font: 700 12px/20px var(--body); text-align: center;
 }
 .top-acciones { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+/* Usuario logueado (issue #2) */
+.usuario-actual { display: inline-flex; align-items: center; gap: 6px; max-width: 220px; padding: 5px 12px;
+  border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 15px; white-space: nowrap; }
+.usuario-actual svg { flex: none; color: var(--azul); }
+.usuario-actual strong { color: var(--azul); overflow: hidden; text-overflow: ellipsis; }
+.etiqueta-admin { flex: none; padding: 1px 7px; border-radius: 999px; background: var(--naranja); color: #0B1F3A;
+  font-size: 12px; font-weight: 700; }
+.sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .engranaje {
   display: inline-grid; place-items: center; width: 40px; height: 40px;
   border-radius: 8px; color: var(--navy); text-decoration: none;
@@ -250,6 +258,7 @@ details.panel[open] > summary { margin-bottom: 14px; }
   .top .wrap { flex-wrap: wrap; gap: 6px 10px; padding-block: 8px; }
   .menu { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; }
   .menu a { white-space: nowrap; }
+  .usuario-actual { max-width: 140px; padding: 4px 10px; font-size: 14px; }
   .banda-busqueda { padding: 32px 0 28px; }
   .buscador-fila input[type=search] { font-size: 17px; padding: 10px; }
   .btn-buscar { padding: 0 16px; font-size: 16px; }
