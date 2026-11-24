@@ -40,6 +40,23 @@
                        placeholder="Modelo. Ej: Ranger, Fiesta">
             </div>
             <p class="ayuda-busqueda">Si buscás por código, también te mostramos los números que lo reemplazan.</p>
+
+            <!-- Sin cuenta: ubicación del navegador (con permiso) para ordenar del más cercano al más lejano.
+                 Se manda redondeada (~1 km) y no se guarda en el servidor. -->
+            <th:block th:unless="${logueado}">
+                <input type="hidden" name="lat" id="latRef">
+                <input type="hidden" name="lon" id="lonRef">
+                <p class="ubicacion">
+                    <button type="button" class="btn-ubicacion" id="usarUbicacion">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>
+                        </svg>
+                        Ver primero los más cercanos a mí
+                    </button>
+                    <span id="ubicacionEstado" aria-live="polite"></span>
+                </p>
+            </th:block>
         </form>
     </div>
 </section>
@@ -64,6 +81,42 @@
         <button type="button" class="btn-secundario" id="avisoPerfilCerrar">Más tarde</button>
     </div>
 </dialog>
+<script th:unless="${logueado}">
+    (function () {
+        const form = document.querySelector('form.buscador');
+        const lat = document.getElementById('latRef'), lon = document.getElementById('lonRef');
+        const boton = document.getElementById('usarUbicacion'), estado = document.getElementById('ubicacionEstado');
+        if (!form || !boton) return;
+
+        function usar(c) {
+            lat.value = c.lat.toFixed(2);   // ~1 km: alcanza para saber el estado
+            lon.value = c.lon.toFixed(2);
+            boton.hidden = true;
+            estado.textContent = 'Ubicación compartida.';
+        }
+        // Si ya la compartió en esta pestaña, no se vuelve a preguntar
+        try {
+            const guardada = JSON.parse(sessionStorage.getItem('ubicacion') || 'null');
+            if (guardada) usar(guardada);
+        } catch (e) { /* sin sessionStorage: se pregunta de nuevo */ }
+
+        boton.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                estado.textContent = 'Tu navegador no comparte la ubicación. Podés elegir tu estado en el filtro.';
+                return;
+            }
+            estado.textContent = 'Aceptá el permiso de ubicación en tu navegador…';
+            navigator.geolocation.getCurrentPosition(function (p) {
+                const c = { lat: p.coords.latitude, lon: p.coords.longitude };
+                usar(c);
+                try { sessionStorage.setItem('ubicacion', JSON.stringify(c)); } catch (e) { }
+                htmx.trigger(form, 'submit');   // vuelve a buscar, ya ordenado por cercanía
+            }, function () {
+                estado.textContent = 'No pudimos saber tu ubicación. Podés elegir tu estado en el filtro.';
+            }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+        });
+    })();
+</script>
 <script th:if="${avisoPerfil}">
     (function () {
         const d = document.getElementById('avisoPerfil');

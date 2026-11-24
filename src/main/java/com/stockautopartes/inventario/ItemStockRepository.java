@@ -17,15 +17,26 @@ public interface ItemStockRepository extends JpaRepository<ItemStock, Long> {
     @EntityGraph(attributePaths = "marca")
     Page<ItemStock> findByVendedor_IdOrderByCodigoOriginalAsc(Long vendedorId, Pageable pagina);
 
-    /** Condiciones de la búsqueda (las usan la consulta y el conteo para paginar). */
+    /** Todas las palabras buscadas aparecen en código, descripción, marca o vehículo (ver V13). */
+    String TODAS_LAS_PALABRAS = """
+            NOT EXISTS (
+                SELECT 1 FROM regexp_split_to_table(texto_para_buscar(CAST(:texto AS VARCHAR)), '[[:space:]]+') w
+                WHERE w <> '' AND i.texto_busqueda NOT LIKE '%' || w || '%')
+            """;
+
+    /**
+     * Condiciones de la búsqueda (las usan la consulta y el conteo para paginar).
+     * ev = ubicación del estado del vendedor; ec = la del comprador (:estadoRef), para ordenar por cercanía.
+     */
     String DESDE_BUSQUEDA = """
             FROM item_stock i
             JOIN usuario u ON u.id = i.usuario_id
+            LEFT JOIN estado_ubicacion ev ON ev.estado = u.estado
+            LEFT JOIN estado_ubicacion ec ON ec.estado = CAST(:estadoRef AS VARCHAR)
             WHERE (i.codigo_normalizado IN (:codigos)
                    OR i.descripcion % :texto
-                   OR NOT EXISTS (
-                        SELECT 1 FROM regexp_split_to_table(texto_para_buscar(CAST(:texto AS VARCHAR)), '[[:space:]]+') w
-                        WHERE w <> '' AND i.texto_busqueda NOT LIKE '%' || w || '%'))
+                   OR\s""" + TODAS_LAS_PALABRAS + """
+            )
               AND (CAST(:estado AS VARCHAR) IS NULL OR u.estado = CAST(:estado AS VARCHAR))
               AND (CAST(:ciudad AS VARCHAR) IS NULL OR lower(u.ciudad) = lower(CAST(:ciudad AS VARCHAR)))
               AND (CAST(:marcaId AS INTEGER) IS NULL OR i.marca_id = CAST(:marcaId AS INTEGER))
@@ -39,14 +50,21 @@ public interface ItemStockRepository extends JpaRepository<ItemStock, Long> {
      * Por código (el buscado más sus reemplazos/equivalentes), por descripción parecida (pg_trgm), o
      * porque cada palabra buscada aparece en código, descripción, marca, vehículo o marca del vehículo
      * (columna texto_busqueda, ver V13): "disco ranger", "pastillas toyota", "bujia civic".
-     * Orden: código exacto, después reemplazos/equivalentes, después por similitud de descripción.
+     * Orden: primero lo que coincide de verdad (código, reemplazo o todas las palabras) y, dentro de eso,
+     * del más cercano al comprador al más lejano (misma ciudad, mismo estado, distancia entre estados);
+     * después código exacto, reemplazos/equivalentes y similitud de descripción.
+     * Sin :estadoRef (no entró o no cargó su ubicación) no se ordena por cercanía.
      *
      * Marca (del vehículo): la que tiene asignada cada ítem (ver DetectorMarca).
      * Modelo: texto libre que tiene que aparecer en el vehículo o en la descripción (ej. "Ranger").
      * Con texto vacío (solo filtros) trae todo lo que cumple los filtros.
      */
-    @Query(value = "SELECT i.* " + DESDE_BUSQUEDA + """
-            ORDER BY (i.codigo_normalizado = :codigo) DESC,
+    @Query(value = "SELECT i.* " + DESDE_BUSQUEDA
+            + " ORDER BY (i.codigo_normalizado IN (:codigos) OR " + TODAS_LAS_PALABRAS + ") DESC, " + """
+                     (u.estado = CAST(:estadoRef AS VARCHAR)
+                      AND lower(u.ciudad) = lower(CAST(:ciudadRef AS VARCHAR))) DESC NULLS LAST,
+                     distancia_km(ec.lat, ec.lon, ev.lat, ev.lon) NULLS LAST,
+                     (i.codigo_normalizado = :codigo) DESC,
                      (i.codigo_normalizado IN (:codigos)) DESC,
                      similarity(COALESCE(i.descripcion, ''), :texto) DESC,
                      i.id
@@ -60,5 +78,7 @@ public interface ItemStockRepository extends JpaRepository<ItemStock, Long> {
                            @Param("ciudad") String ciudad,
                            @Param("marcaId") Integer marcaId,
                            @Param("modelo") String modelo,
+                           @Param("estadoRef") String estadoRef,
+                           @Param("ciudadRef") String ciudadRef,
                            Pageable pagina);
 }

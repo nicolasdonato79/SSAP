@@ -16,15 +16,21 @@ public class BusquedaController {
     private final ItemStockRepository items;
     private final EquivalenciaService equivalencias;
     private final CiudadRepository ciudades;
+    private final com.stockautopartes.usuario.UsuarioActual usuarioActual;
+    private final com.stockautopartes.ubicacion.Cercania cercania;
     private final int diasNoConfirmado;
 
     public BusquedaController(ItemStockRepository items,
                               EquivalenciaService equivalencias,
                               CiudadRepository ciudades,
+                              com.stockautopartes.usuario.UsuarioActual usuarioActual,
+                              com.stockautopartes.ubicacion.Cercania cercania,
                               @Value("${app.stock.dias-para-no-confirmado}") int diasNoConfirmado) {
         this.items = items;
         this.equivalencias = equivalencias;
         this.ciudades = ciudades;
+        this.usuarioActual = usuarioActual;
+        this.cercania = cercania;
         this.diasNoConfirmado = diasNoConfirmado;
     }
 
@@ -37,6 +43,8 @@ public class BusquedaController {
                          @RequestParam(defaultValue = "") String modelo,
                          @RequestParam(defaultValue = "1") int pagina,
                          @RequestParam(defaultValue = "10") int tamanio,
+                         @RequestParam(required = false) Double lat,
+                         @RequestParam(required = false) Double lon,
                          Model model) {
         String texto = q.trim();
         String modeloFiltro = modelo.trim().length() >= 2 ? modelo.trim() : null;
@@ -55,8 +63,22 @@ public class BusquedaController {
             // La ciudad solo filtra si es del estado elegido (al cambiar de estado puede llegar la anterior)
             String ciudadFiltro = (estadoFiltro == null || ciudad == null || ciudad.isBlank()) ? null
                     : ciudades.buscar(estadoFiltro, ciudad).orElse(null);
+            // Ubicación del comprador (la de su configuración) para ordenar del más cercano al más lejano
+            var yo = usuarioActual.buscar();
+            String estadoRef = yo.map(com.stockautopartes.usuario.Usuario::getEstado).orElse(null);
+            String ciudadRef = yo.map(com.stockautopartes.usuario.Usuario::getCiudad).orElse(null);
+            // Visitante sin cuenta que compartió su ubicación: se usa el estado más cercano a ese punto
+            if (estadoRef == null && lat != null && lon != null && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+                estadoRef = cercania.estadoMasCercano(lat, lon);
+                ciudadRef = null;
+                model.addAttribute("refPorUbicacion", estadoRef != null);
+                model.addAttribute("fueraDeVenezuela", estadoRef == null);
+            }
+            model.addAttribute("estadoRef", estadoRef);
+            model.addAttribute("ciudadRef", ciudadRef);
             org.springframework.data.domain.Page<ItemStock> pag = items.buscar(codigo, codigos, texto,
-                    estadoFiltro, ciudadFiltro, marca, modeloFiltro, com.stockautopartes.web.Paginas.pedirElegido(pagina, tamanio));
+                    estadoFiltro, ciudadFiltro, marca, modeloFiltro, estadoRef, ciudadRef,
+                    com.stockautopartes.web.Paginas.pedirElegido(pagina, tamanio));
             resultados = pag.getContent();
             model.addAttribute("pag", pag);
         }

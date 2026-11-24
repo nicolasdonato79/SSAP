@@ -20,6 +20,10 @@
     <th:block th:unless="${resultados.isEmpty()}">
         <div class="resultados-cabecera">
             <span th:text="${pag.totalElements == 1 ? '1 resultado' : pag.totalElements + ' resultados'}"></span>
+            <span class="chico" th:if="${refPorUbicacion}"
+                  th:text="${'· Primero los más cercanos a tu ubicación (' + estadoRef + ')'}"></span>
+            <span class="chico" th:if="${fueraDeVenezuela}">
+                · Tu ubicación está fuera de Venezuela: no podemos ordenar por cercanía. Elegí un estado en el filtro.</span>
         </div>
         <div class="lista">
             <article class="resultado" th:each="item : ${resultados}">
@@ -42,6 +46,9 @@
                         <strong th:text="${logueado} ? ${item.vendedor.nombre} : ${@privacidad.ocultar(item.vendedor.nombre)}"
                                 th:title="${logueado} ? null : 'Entrá para ver quién lo vende'"></strong>
                         en <span th:text="${item.vendedor.ciudad}"></span>, <span th:text="${item.vendedor.estado}"></span>
+                        <span class="cercania"
+                              th:with="cerca=${@cercania.texto(item.vendedor.estado, item.vendedor.ciudad, estadoRef, ciudadRef)}"
+                              th:if="${cerca}" th:text="${cerca}"></span>
                     </p>
                     <p class="meta" th:if="${item.vendedor.marcasResumen != ''}"
                        th:text="${'Trabaja ' + item.vendedor.marcasResumen}"></p>
