@@ -18,6 +18,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     List<Usuario> findAllByOrderByUsernameAsc();
 
+    org.springframework.data.domain.Page<Usuario> findAllByOrderByUsernameAsc(org.springframework.data.domain.Pageable pagina);
+
     /** Registros que nunca terminaron de verificarse (para borrarlos). */
     List<Usuario> findByPendienteVerificacionTrueAndCreadoEnBefore(Instant antes);
 }

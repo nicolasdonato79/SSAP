@@ -10,6 +10,12 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
 
     List<Solicitud> findTop100ByComprador_IdOrderByCreadaEnDesc(Long compradorId);
 
+    org.springframework.data.domain.Page<Solicitud> findByComprador_IdOrderByCreadaEnDesc(
+            Long compradorId, org.springframework.data.domain.Pageable pagina);
+
+    org.springframework.data.domain.Page<Solicitud> findByVendedor_IdOrderByCreadaEnDesc(
+            Long vendedorId, org.springframework.data.domain.Pageable pagina);
+
     List<Solicitud> findTop100ByVendedor_IdOrderByCreadaEnDesc(Long vendedorId);
 
     boolean existsByComprador_IdAndVendedor_IdAndCodigoAndEstadoIn(Long compradorId, Long vendedorId,

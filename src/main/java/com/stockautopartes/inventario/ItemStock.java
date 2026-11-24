@@ -34,6 +34,11 @@ public class ItemStock {
     @Column(length = 150)
     private String vehiculo;
 
+    /** Marca del vehículo (la asigna DetectorMarca). null = no se pudo saber. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "marca_id")
+    private com.stockautopartes.marca.Marca marca;
+
     /** null = "consultar" (el vendedor no informó cuántas tiene). */
     private Integer cantidad;
 
@@ -58,6 +63,7 @@ public class ItemStock {
     public String getCodigoNormalizado() { return codigoNormalizado; }
     public String getDescripcion() { return descripcion; }
     public String getMarcaRepuesto() { return marcaRepuesto; }
+    public com.stockautopartes.marca.Marca getMarca() { return marca; }
     public String getVehiculo() { return vehiculo; }
     public Integer getCantidad() { return cantidad; }
     public BigDecimal getPrecioUsd() { return precioUsd; }

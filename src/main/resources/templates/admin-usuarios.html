@@ -65,7 +65,7 @@
         </form>
     </details>
 
-    <h2>Todos los usuarios</h2>
+    <h2>Todos los usuarios <small class="chico" th:text="${'(' + pag.totalElements + ')'}"></small></h2>
     <div class="lista">
         <div class="usuario" th:each="u : ${usuarios}" th:classappend="${u.activo} ? '' : 'inactivo'">
             <h3 style="margin:0">
@@ -95,6 +95,10 @@
             </div>
         </div>
     </div>
+    <th:block th:with="pagUrl='/admin/usuarios', pagParam='pagina'">
+        <nav th:replace="~{fragmentos/paginacion :: paginador}"></nav>
+    </th:block>
+
 
     <h2 id="marcas">Catálogo de marcas</h2>
     <section class="panel">

@@ -16,7 +16,7 @@
 </section>
 
 <main class="wrap contenido">
-    <h2 style="margin-top:0">Me pidieron</h2>
+    <h2 style="margin-top:0" id="recibidos">Me pidieron</h2>
     <div class="lista">
         <div class="vacio" th:if="${recibidos.isEmpty()}">
             Todavía no te pidieron nada. Mantené tu <a href="/mi-stock">stock</a> al día para aparecer en las búsquedas.
@@ -25,8 +25,12 @@
             <article th:replace="~{fragmentos/solicitud :: fila(s=${s}, rol='vendedor')}"></article>
         </th:block>
     </div>
+    <th:block th:with="pag=${pagRecibidos}, pagParam='recibidos', pagTamParam='tRecibidos',
+                       pagUrl=${'/pedidos?enviados=' + (pagEnviados.number + 1) + '&tEnviados=' + pagEnviados.size}">
+        <nav th:replace="~{fragmentos/paginacion :: paginador}"></nav>
+    </th:block>
 
-    <h2>Pedí</h2>
+    <h2 id="enviados">Pedí</h2>
     <div class="lista">
         <div class="vacio" th:if="${enviados.isEmpty()}">
             No hiciste pedidos. <a href="/">Buscá un repuesto</a> y tocá Pedir.
@@ -35,6 +39,10 @@
             <article th:replace="~{fragmentos/solicitud :: fila(s=${s}, rol='comprador')}"></article>
         </th:block>
     </div>
+    <th:block th:with="pag=${pagEnviados}, pagParam='enviados', pagTamParam='tEnviados',
+                       pagUrl=${'/pedidos?recibidos=' + (pagRecibidos.number + 1) + '&tRecibidos=' + pagRecibidos.size}">
+        <nav th:replace="~{fragmentos/paginacion :: paginador}"></nav>
+    </th:block>
 </main>
 
 <footer th:replace="~{fragmentos/nav :: pie}"></footer>

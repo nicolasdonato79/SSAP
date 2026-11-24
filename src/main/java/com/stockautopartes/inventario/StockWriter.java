@@ -18,8 +18,8 @@ public class StockWriter {
 
     private static final String INSERT = """
             INSERT INTO item_stock (usuario_id, codigo_original, codigo_normalizado, descripcion,
-                                    marca_repuesto, vehiculo, cantidad, precio_usd, cargado_en)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    marca_repuesto, vehiculo, cantidad, precio_usd, cargado_en, marca_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
     private final JdbcTemplate jdbc;
@@ -28,7 +28,9 @@ public class StockWriter {
         this.jdbc = jdbc;
     }
 
-    public void reemplazarStock(long usuarioId, List<FilaStock> filas, Instant cargadoEn) {
+    /** @param marcaDe marca de vehículo de cada fila (null = sin marca). */
+    public void reemplazarStock(long usuarioId, List<FilaStock> filas, Instant cargadoEn,
+                                java.util.function.Function<FilaStock, Integer> marcaDe) {
         jdbc.update("DELETE FROM item_stock WHERE usuario_id = ?", usuarioId);
         Timestamp ts = Timestamp.from(cargadoEn);
         jdbc.batchUpdate(INSERT, filas, 500, (ps, f) -> {
@@ -41,6 +43,7 @@ public class StockWriter {
             ps.setObject(7, f.cantidad(), java.sql.Types.INTEGER);
             ps.setObject(8, f.precioUsd(), java.sql.Types.NUMERIC);
             ps.setTimestamp(9, ts);
+            ps.setObject(10, marcaDe.apply(f), java.sql.Types.INTEGER);
         });
     }
 }

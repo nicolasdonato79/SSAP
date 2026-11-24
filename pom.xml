@@ -13,7 +13,7 @@
 
     <groupId>com.stockautopartes</groupId>
     <artifactId>sistema-stock-autopartes</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>SistemaStockAutoPartes</name>
     <description>Marketplace de stock de autopartes entre vendedores de Venezuela</description>
 

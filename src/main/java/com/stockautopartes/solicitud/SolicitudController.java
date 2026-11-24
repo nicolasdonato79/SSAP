@@ -27,12 +27,22 @@ public class SolicitudController {
 
     /** Pedidos que me hicieron (como vendedor) y que hice (como comprador). */
     @GetMapping("/pedidos")
-    public String pedidos(Model model) {
+    public String pedidos(@RequestParam(defaultValue = "1") int recibidos,
+                          @RequestParam(defaultValue = "1") int enviados,
+                          @RequestParam(defaultValue = "10") int tRecibidos,
+                          @RequestParam(defaultValue = "10") int tEnviados, Model model) {
         Usuario yo = usuarioActual.obtener();
-        model.addAttribute("recibidos", solicitudes.findTop100ByVendedor_IdOrderByCreadaEnDesc(yo.getId()));
-        model.addAttribute("enviados", solicitudes.findTop100ByComprador_IdOrderByCreadaEnDesc(yo.getId()));
+        var pagRecibidos = solicitudes.findByVendedor_IdOrderByCreadaEnDesc(yo.getId(),
+                com.stockautopartes.web.Paginas.pedirElegido(recibidos, tRecibidos));
+        var pagEnviados = solicitudes.findByComprador_IdOrderByCreadaEnDesc(yo.getId(),
+                com.stockautopartes.web.Paginas.pedirElegido(enviados, tEnviados));
+        model.addAttribute("recibidos", pagRecibidos.getContent());
+        model.addAttribute("enviados", pagEnviados.getContent());
+        model.addAttribute("pagRecibidos", pagRecibidos);
+        model.addAttribute("pagEnviados", pagEnviados);
         return "pedidos";
     }
+
 
     /** Botón "Pedir" de los resultados de búsqueda. */
     @PostMapping("/solicitudes")

@@ -62,9 +62,14 @@ public class ImportacionController {
 
     /** HTMX consulta este endpoint cada 2 segundos hasta que la importación termina. */
     @GetMapping("/importaciones/{id}")
-    public String estado(@PathVariable long id, Model model) {
+    public String estado(@PathVariable long id, Model model,
+                         jakarta.servlet.http.HttpServletResponse response) {
         Importacion imp = importaciones.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+        if (imp.getEstado().esFinal()) {
+            // Terminó: la grilla de "Publicado" se actualiza sola (escucha este evento)
+            response.setHeader("HX-Trigger", "stockActualizado");
+        }
         model.addAttribute("imp", imp);
         return "fragmentos/importacion :: estado";
     }

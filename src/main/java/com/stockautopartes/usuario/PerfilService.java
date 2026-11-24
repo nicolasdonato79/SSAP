@@ -24,13 +24,15 @@ public class PerfilService {
 
     private final UsuarioRepository usuarios;
     private final MarcaRepository marcas;
+    private final com.stockautopartes.inventario.AsignadorMarca asignadorMarca;
     private final PasswordEncoder encoder;
     private final CiudadRepository ciudades;
 
     public PerfilService(UsuarioRepository usuarios, MarcaRepository marcas, PasswordEncoder encoder,
-                         CiudadRepository ciudades) {
+                         CiudadRepository ciudades, com.stockautopartes.inventario.AsignadorMarca asignadorMarca) {
         this.usuarios = usuarios;
         this.marcas = marcas;
+        this.asignadorMarca = asignadorMarca;
         this.encoder = encoder;
         this.ciudades = ciudades;
     }
@@ -125,7 +127,13 @@ public class PerfilService {
         }
         u.actualizarPerfil(nombre, telefono.orElse(null), email.isEmpty() ? null : email.toLowerCase(),
                 estado, ciudad.isEmpty() ? null : ciudad);
+        java.util.Set<Integer> antes = new java.util.HashSet<>(u.getMarcasOrdenadas().stream().map(m -> m.getId()).toList());
         u.reemplazarMarcas(f.getMarcas().isEmpty() ? List.of() : marcas.findByIdInAndActivaTrue(f.getMarcas()));
+        java.util.Set<Integer> despues = new java.util.HashSet<>(u.getMarcasOrdenadas().stream().map(m -> m.getId()).toList());
+        if (!antes.equals(despues)) {
+            // Cambió lo que trabaja: la marca de sus repuestos sin modelo puede cambiar
+            asignadorMarca.recalcular(u.getId(), despues, false);
+        }
         u.reemplazarHorarios(horarios);
         return errores;
     }

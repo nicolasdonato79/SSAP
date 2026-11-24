@@ -12,7 +12,7 @@
         <h1>Mi stock</h1>
         <p class="lead">Subí tu listado en Excel y queda visible para compradores de todo el país.</p>
         <div class="cifras">
-            <div><b th:text="${total}">0</b>productos publicados</div>
+            <div><b id="totalPublicados" th:text="${total}">0</b>productos publicados</div>
             <div th:if="${usuario.ultimaCarga}"><b th:text="${@fechas.formatear(usuario.ultimaCarga)}"></b>última carga</div>
             <div th:if="${usuario.marcasResumen != ''}"><b th:text="${usuario.marcas.size()}"></b>
                 <a href="/configuracion" th:text="${usuario.marcas.size() == 1 ? 'marca' : 'marcas'}"></a></div>
@@ -43,27 +43,37 @@
         </div>
     </section>
 
+    <!-- Se vuelve a pedir solo cuando termina una carga (evento stockActualizado) -->
+    <div id="publicado" th:fragment="publicado"
+         th:attr="hx-get=${'/mi-stock/listado?tamanio=' + (pag != null ? pag.size : 10)}"
+         hx-trigger="stockActualizado from:body" hx-swap="outerHTML">
+    <b id="totalPublicados" th:if="${oob}" hx-swap-oob="true" th:text="${total}"></b>
     <section class="panel" th:if="${total > 0}">
         <h2>Publicado</h2>
-        <p class="chico" th:if="${total > items.size()}">
-            Mostrando los primeros <span th:text="${items.size()}"></span> de <span th:text="${total}"></span>.
-        </p>
         <div class="tabla-wrap">
             <table class="tabla">
                 <thead>
-                <tr><th>Código</th><th>Descripción</th><th class="der">Cantidad</th><th class="der">USD</th></tr>
+                <tr><th>Código</th><th>Descripción</th><th>Marca</th><th>Vehículo</th><th class="der">Cantidad</th><th class="der">USD</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="i : ${items}">
                     <td class="codigo" th:text="${i.codigoOriginal}"></td>
                     <td th:text="${i.descripcion ?: '—'}"></td>
+                    <td th:text="${i.marca != null ? i.marca.etiqueta : 'Sin marca'}"
+                        th:classappend="${i.marca == null} ? 'chico' : ''"></td>
+                    <td th:text="${i.vehiculo ?: '—'}"></td>
                     <td class="der" th:text="${i.cantidad ?: 'Consultar'}"></td>
                     <td class="der" th:text="${i.precioUsd != null ? #numbers.formatDecimal(i.precioUsd, 1, 'POINT', 2, 'COMMA') : 'Consultar'}"></td>
                 </tr>
                 </tbody>
             </table>
         </div>
+        <th:block th:with="pagUrl='/mi-stock/listado', pagParam='pagina', pagObjetivo='#publicado',
+                           pagSwap='outerHTML show:#publicado:top'">
+            <nav th:replace="~{fragmentos/paginacion :: paginador}"></nav>
+        </th:block>
     </section>
+    </div>
 </main>
 
 <footer th:replace="~{fragmentos/nav :: pie}"></footer>
