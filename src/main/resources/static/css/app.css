@@ -264,6 +264,34 @@ details.panel[open] > summary { margin-bottom: 14px; }
 .login-caja .marca-login { display: flex; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .login-caja button[type=submit] { width: 100%; padding: 14px; font-size: 17px; }
 
+/* ---------- ABM manual de stock ---------- */
+.acciones-fila { white-space: nowrap; text-align: right; }
+.acciones-fila form { display: inline; }
+button.btn-icono, button.btn-icono:hover {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0;
+  margin-left: 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--azul);
+  vertical-align: middle;
+}
+button.btn-icono:hover { background: var(--bg); border-color: var(--line); }
+button.btn-icono.btn-icono-peligro { color: #B42318; }
+button.btn-icono.btn-icono-ok { color: #1E7B3A; }
+.fila-edicion td { background: var(--bg); padding: 6px 4px; vertical-align: top; }
+.fila-edicion input, .fila-edicion select { width: 100%; min-width: 90px; padding: 6px 8px; font-size: 14px; }
+.fila-edicion input.corto { min-width: 70px; max-width: 110px; }
+.fila-edicion .acciones-fila { padding-top: 6px; }
+.errores-fila { margin: 6px 0 0; padding-left: 18px; color: #B42318; font-size: 13px; }
+.item-nuevo { margin-top: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.item-nuevo h3 { margin: 0 0 12px; }
+.item-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.item-campos label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.item-campos .ancho-2 { grid-column: span 2; }
+.item-campos input, .item-campos select { width: 100%; font-weight: 400; }
+.item-form-botones { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+.item-form ul.msg { margin: 12px 0 0; padding-left: 28px; }
+@media (max-width: 760px) {
+  .item-campos { grid-template-columns: 1fr 1fr; }
+}
+
 /* ---------- Paginador ---------- */
 .paginador { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 18px 0 8px; }
 .paginador-info { margin: 0; color: var(--muted); font-size: 14px; }

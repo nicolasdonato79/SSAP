@@ -25,7 +25,7 @@ public class ItemStock {
     @Column(name = "codigo_normalizado", nullable = false, length = 80)
     private String codigoNormalizado;
 
-    @Column(nullable = false, length = 300)
+    @Column(length = 300) // puede quedar vacía (V3)
     private String descripcion;
 
     @Column(name = "marca_repuesto", length = 80)
@@ -50,6 +50,29 @@ public class ItemStock {
     private Instant cargadoEn;
 
     protected ItemStock() {
+    }
+
+    /** Alta manual desde "Mi stock" (sin Excel). cantidad/precio null = a consultar. */
+    public static ItemStock manual(Usuario vendedor, String codigo, String descripcion, String vehiculo,
+                                   Integer cantidad, BigDecimal precioUsd,
+                                   com.stockautopartes.marca.Marca marca, Instant ahora) {
+        ItemStock i = new ItemStock();
+        i.vendedor = vendedor;
+        i.modificar(codigo, descripcion, vehiculo, cantidad, precioUsd, marca, ahora);
+        return i;
+    }
+
+    /** Cambio manual. Cuenta como stock confirmado hoy. La marca del repuesto (columna del Excel) no se toca. */
+    public void modificar(String codigo, String descripcion, String vehiculo, Integer cantidad, BigDecimal precioUsd,
+                          com.stockautopartes.marca.Marca marca, Instant ahora) {
+        this.codigoOriginal = codigo;
+        this.codigoNormalizado = CodigoNormalizer.normalizar(codigo);
+        this.descripcion = descripcion;
+        this.vehiculo = vehiculo;
+        this.cantidad = cantidad;
+        this.precioUsd = precioUsd;
+        this.marca = marca;
+        this.cargadoEn = ahora;
     }
 
     /** true si el stock no se actualizó en los últimos {@code dias} días. */

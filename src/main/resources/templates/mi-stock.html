@@ -43,7 +43,14 @@
         </div>
     </section>
 
-    <!-- Se vuelve a pedir solo cuando termina una carga (evento stockActualizado) -->
+    <section class="panel">
+        <h2>Carga manual</h2>
+        <p class="chico">Para agregar o corregir un repuesto sin subir el Excel. Ojo: la próxima carga de Excel
+            reemplaza todo tu stock, incluida la carga manual.</p>
+        <div th:replace="~{fragmentos/item-stock :: cerrado}"></div>
+    </section>
+
+    <!-- Se vuelve a pedir solo cuando termina una carga o un cambio manual (evento stockActualizado) -->
     <div id="publicado" th:fragment="publicado"
          th:attr="hx-get=${'/mi-stock/listado?tamanio=' + (pag != null ? pag.size : 10)}"
          hx-trigger="stockActualizado from:body" hx-swap="outerHTML">
@@ -53,18 +60,12 @@
         <div class="tabla-wrap">
             <table class="tabla">
                 <thead>
-                <tr><th>Código</th><th>Descripción</th><th>Marca</th><th>Vehículo</th><th class="der">Cantidad</th><th class="der">USD</th></tr>
+                <tr><th>Código</th><th>Descripción</th><th>Vehículo</th><th>Marca</th><th class="der">Cantidad</th><th class="der">USD</th><th><span class="sr-solo">Acciones</span></th></tr>
                 </thead>
                 <tbody>
-                <tr th:each="i : ${items}">
-                    <td class="codigo" th:text="${i.codigoOriginal}"></td>
-                    <td th:text="${i.descripcion ?: '—'}"></td>
-                    <td th:text="${i.marca != null ? i.marca.etiqueta : 'Sin marca'}"
-                        th:classappend="${i.marca == null} ? 'chico' : ''"></td>
-                    <td th:text="${i.vehiculo ?: '—'}"></td>
-                    <td class="der" th:text="${i.cantidad ?: 'Consultar'}"></td>
-                    <td class="der" th:text="${i.precioUsd != null ? #numbers.formatDecimal(i.precioUsd, 1, 'POINT', 2, 'COMMA') : 'Consultar'}"></td>
-                </tr>
+                <th:block th:each="i : ${items}">
+                    <tr th:replace="~{fragmentos/item-stock :: fila}"></tr>
+                </th:block>
                 </tbody>
             </table>
         </div>
