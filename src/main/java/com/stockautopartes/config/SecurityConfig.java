@@ -1,14 +1,19 @@
 package com.stockautopartes.config;
 
+import com.stockautopartes.sync.DispositivoService;
+import com.stockautopartes.sync.TokenDispositivoFilter;
 import com.stockautopartes.usuario.UsuarioRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -23,7 +28,35 @@ import java.time.Clock;
 @Configuration
 public class SecurityConfig {
 
+    /**
+     * API de la app sin conexión (issue #9): sin sesión ni cookies, con el token del equipo en
+     * "Authorization: Bearer". Como no usa cookies no hace falta CSRF. Sin token válido: 401 en JSON.
+     */
     @Bean
+    @Order(1)
+    SecurityFilterChain apiFilterChain(HttpSecurity http, DispositivoService dispositivos) throws Exception {
+        http
+            .securityMatcher("/api/**")
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/dispositivo", "/api/sync/ping").permitAll()
+                .anyRequest().authenticated())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .requestCache(cache -> cache.disable())
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .logout(logout -> logout.disable())
+            .addFilterBefore(new TokenDispositivoFilter(dispositivos), UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint((req, res, e) -> {
+                res.setStatus(401);
+                res.setContentType("application/json;charset=UTF-8");
+                res.getWriter().write("{\"error\":\"SIN_SESION\",\"mensaje\":\"Tenés que volver a entrar con tu usuario y contraseña.\"}");
+            }));
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     SecurityFilterChain filterChain(HttpSecurity http,
                                     SecurityContextRepository contextRepository,
                                     RequestCache requestCache,
@@ -31,7 +64,8 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/buscar", "/ciudades", "/plantilla.xlsx", "/login", "/error", "/favicon.ico", "/css/**", "/img/**",
-                                 "/registro", "/registro/**", "/recuperar", "/recuperar/**").permitAll()
+                                 "/registro", "/registro/**", "/recuperar", "/recuperar/**",
+                                 "/app", "/app/**").permitAll()   // app sin conexión (PWA): archivos estáticos
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .securityContext(ctx -> ctx.securityContextRepository(contextRepository))

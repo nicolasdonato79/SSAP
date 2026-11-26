@@ -1,0 +1,17 @@
+{
+  "name": "Stock Multimarca",
+  "short_name": "Stock",
+  "description": "Tu stock de autopartes y tus pedidos, también sin conexión.",
+  "lang": "es",
+  "id": "/app/",
+  "start_url": "/app/#/stock",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#F4F6F9",
+  "theme_color": "#0B1F3A",
+  "icons": [
+    { "src": "img/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

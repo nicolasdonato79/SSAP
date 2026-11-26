@@ -1,0 +1,8 @@
+Librerías de terceros de la app sin conexión (copiadas tal cual, sin compilar):
+
+preact-htm.js          htm 3.1.1 (htm/preact/standalone.module.js: Preact + hooks + htm)   Apache-2.0 / MIT
+read-excel-file.js     read-excel-file 9.3.20 (export "universal", empaquetado con esbuild)  MIT
+sqlite/sqlite3.js      @sqlite.org/sqlite-wasm 3.54.1 (dist/index.mjs)                       Apache-2.0 (SQLite: dominio público)
+sqlite/sqlite3.wasm    idem
+
+Para actualizarlas: npm i <paquete>, copiar el archivo y subir VERSION en ../sw.js.

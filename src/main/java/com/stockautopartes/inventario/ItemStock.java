@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "item_stock")
@@ -14,6 +15,10 @@ public class ItemStock {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Id para la sincronización (issue #9). Lo puede generar el equipo sin conexión; no cambia nunca. */
+    @Column(nullable = false, updatable = false)
+    private UUID uuid = UUID.randomUUID();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id")
@@ -56,7 +61,15 @@ public class ItemStock {
     public static ItemStock manual(Usuario vendedor, String codigo, String descripcion, String vehiculo,
                                    Integer cantidad, BigDecimal precioUsd,
                                    com.stockautopartes.marca.Marca marca, Instant ahora) {
+        return manual(UUID.randomUUID(), vendedor, codigo, descripcion, vehiculo, cantidad, precioUsd, marca, ahora);
+    }
+
+    /** Alta con el uuid que generó el equipo (alta hecha sin conexión). */
+    public static ItemStock manual(UUID uuid, Usuario vendedor, String codigo, String descripcion, String vehiculo,
+                                   Integer cantidad, BigDecimal precioUsd,
+                                   com.stockautopartes.marca.Marca marca, Instant ahora) {
         ItemStock i = new ItemStock();
+        i.uuid = uuid;
         i.vendedor = vendedor;
         i.modificar(codigo, descripcion, vehiculo, cantidad, precioUsd, marca, ahora);
         return i;
@@ -81,6 +94,7 @@ public class ItemStock {
     }
 
     public Long getId() { return id; }
+    public UUID getUuid() { return uuid; }
     public Usuario getVendedor() { return vendedor; }
     public String getCodigoOriginal() { return codigoOriginal; }
     public String getCodigoNormalizado() { return codigoNormalizado; }

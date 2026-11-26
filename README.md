@@ -157,3 +157,34 @@ responder al usuario. El pedido guarda el precio publicado, la oferta y la contr
 5. Descarga del Excel de errores de la importación.
 6. Docker de la app + Nginx + backups para el VPS.
 # SSAP
+
+## App sin conexión (issue #9)
+
+La app se va a poder instalar como PWA y trabajar sin internet; cuando vuelve la conexión sincroniza con esta API
+(JSON, sin sesión, con el token del equipo en `Authorization: Bearer`). Código en el paquete `sync`.
+
+| Endpoint | Para qué |
+|---|---|
+| `POST /api/auth/dispositivo` | Login del equipo (usuario o email + contraseña) → token |
+| `POST /api/auth/salir` | Cerrar sesión en este equipo |
+| `GET /api/sync/ping` | ¿Hay conexión de verdad? (sin token) |
+| `GET /api/sync/pull?cursor=` | Bajar lo que cambió desde el cursor |
+| `GET /api/sync/catalogo?marcas=` | Bajar el stock de los otros vendedores (sin nombre real ni teléfono) para buscar sin conexión |
+| `POST /api/sync/push` | Subir los cambios hechos sin conexión (cada uno con su `opId`: reintentar no duplica) |
+| `GET /api/sync/catalogos` | Marcas, modelos, ciudades, estados y encabezados del Excel (con ETag) |
+
+- Cada fila sincronizada tiene `uuid`, `version` y `sync_xid` (los pone un trigger, ver V15).
+- Stock: gana el último cambio. Pedidos: gana el que llega primero; si el pedido cambió desde que el usuario lo vio, `CONFLICTO`.
+- Borrados: siguen siendo `DELETE`, pero dejan una marca en `sync_borrado` (se purga a los 30 días).
+- La carga de Excel ahora compara por código en vez de borrar todo: cada ítem conserva su uuid.
+
+### La app (PWA) en `/app/`
+
+`src/main/resources/static/app/`: se instala desde el navegador (Chrome → "Instalar app") en el celular o la PC.
+Base local SQLite (WASM) guardada en el navegador; funciona sin conexión: Mi stock (editar, cargar Excel .xlsx),
+Pedidos (responder) y Buscar en el stock de los otros vendedores. Pedir y lo demás (perfil, admin) necesitan conexión.
+
+- No hay paso de compilación: son módulos JS que sirve Spring tal cual (Preact + htm, ver `vendor/LEEME.txt`).
+- **Al cambiar cualquier archivo de `/app`, subir `VERSION` en `app/sw.js`**: así los equipos instalados bajan la versión nueva.
+- Las reglas que tiene que cumplir igual que el servidor (números venezolanos, encabezados del Excel, marca por modelo)
+  están en `app/js/texto.js`, `excel.js` y `marca.js`, con el nombre de la clase Java de la que salen.

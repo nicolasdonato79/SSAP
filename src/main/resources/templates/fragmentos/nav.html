@@ -38,6 +38,7 @@
             <li><a href="/pedidos" th:attr="aria-current=${activo == 'pedidos'} ? 'page' : null">Pedidos<span
                     th:if="${pedidosPendientes > 0}" class="badge" th:text="${pedidosPendientes}"
                     th:title="${pedidosPendientes + ' pedidos esperando tu respuesta'}"></span></a></li>
+            <li><a href="/app/" title="La app que funciona aunque se corte internet">App sin conexión</a></li>
             <li th:if="${esAdmin}"><a href="/admin/usuarios"
                     th:attr="aria-current=${activo == 'usuarios'} ? 'page' : null">Usuarios</a></li>
         </ul>

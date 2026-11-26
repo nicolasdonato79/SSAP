@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-/** ABM manual del stock (sin Excel). Ojo: la próxima carga de Excel reemplaza todo, también esto. */
+/** ABM manual del stock (sin Excel). Ojo: la próxima carga de Excel reemplaza todo, también esto (ver StockWriter). */
 @Service
 public class ItemStockService {
 
@@ -44,10 +44,16 @@ public class ItemStockService {
 
     @Transactional
     public Resultado crear(Usuario yo, ItemStockForm f) {
+        return crear(yo, f, java.util.UUID.randomUUID());
+    }
+
+    /** Alta con el uuid que generó el equipo (alta hecha sin conexión, issue #9). */
+    @Transactional
+    public Resultado crear(Usuario yo, ItemStockForm f, java.util.UUID uuid) {
         List<String> errores = new ArrayList<>();
         Datos d = validar(f, errores);
         if (!errores.isEmpty()) return new Resultado(null, errores);
-        ItemStock i = items.save(ItemStock.manual(yo, d.codigo, d.descripcion, d.vehiculo, d.cantidad, d.precio,
+        ItemStock i = items.save(ItemStock.manual(uuid, yo, d.codigo, d.descripcion, d.vehiculo, d.cantidad, d.precio,
                 marca(f, d, yo), clock.instant()));
         return new Resultado(i, List.of());
     }

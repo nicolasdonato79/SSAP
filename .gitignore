@@ -6,3 +6,7 @@ target/
 uploads/
 *.log
 .env
+
+# Backups de la base (tienen datos de usuarios: nunca a git)
+backup-*.sql
+*.dump

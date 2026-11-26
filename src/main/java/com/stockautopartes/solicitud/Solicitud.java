@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Un comprador le pide a un vendedor una cantidad de un ítem, y negocian el precio:
@@ -21,6 +22,10 @@ public class Solicitud {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Id para la sincronización (issue #9). */
+    @Column(nullable = false, updatable = false)
+    private UUID uuid = UUID.randomUUID();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "comprador_id")
@@ -173,6 +178,7 @@ public class Solicitud {
     public boolean isAbierta() { return !estado.esFinal(); }
 
     public Long getId() { return id; }
+    public UUID getUuid() { return uuid; }
     public Usuario getComprador() { return comprador; }
     public Usuario getVendedor() { return vendedor; }
     public String getCodigo() { return codigo; }

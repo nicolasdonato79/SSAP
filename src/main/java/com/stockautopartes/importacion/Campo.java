@@ -48,6 +48,16 @@ public enum Campo {
         return obligatorio;
     }
 
+    /** Encabezados que se reconocen tal cual (ya normalizados). Los usa también la app sin conexión. */
+    public List<String> nombres() {
+        return nombres;
+    }
+
+    /** Encabezados que se reconocen por cómo empiezan (ya normalizados). */
+    public List<String> prefijos() {
+        return prefijos;
+    }
+
     /** Nombre para mostrar en los mensajes de error. */
     public String etiqueta() {
         return switch (this) {

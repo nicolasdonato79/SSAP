@@ -60,6 +60,14 @@ app:
     max-errores-guardados: 200
   stock:
     dias-para-no-confirmado: 15
+  sync:
+    # App sin conexión (issue #9).
+    # Días que un equipo puede trabajar sin sincronizar antes de que la app le pida conectarse.
+    dias-sin-sincronizar: ${SYNC_DIAS_SIN_SINCRONIZAR:3}
+    # El token del equipo vence a los N días sin usarse (se renueva solo con el uso).
+    dias-token: 30
+    # Marcas de borrado y operaciones recibidas se guardan N días (un equipo más viejo baja todo de nuevo).
+    dias-purga: 30
   otp:
     # Cómo se manda el código de verificación del teléfono:
     #   prueba   = no se manda (sale en consola y, si mostrar-en-pantalla, en la pantalla)
@@ -80,6 +88,16 @@ app:
     version-api: ${WHATSAPP_VERSION_API:v27.0}
 
 server:
+  # Comprimir las respuestas JSON de la API de sync (el stock bajado pesa ~5 veces menos)
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/css,application/javascript
+    min-response-size: 2KB
+  # Tipos de archivo de la app sin conexión (/app): los módulos JS y el wasm de SQLite exigen el tipo correcto
+  mime-mappings:
+    webmanifest: application/manifest+json
+    wasm: application/wasm
+    js: text/javascript
   servlet:
     session:
       timeout: 30d   # que no tengan que pedir código todo el tiempo
